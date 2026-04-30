@@ -1,0 +1,91 @@
+# =========================================
+# Unity 6.x LTS - .gitignore (Clean & Recommended)
+# =========================================
+
+# =========================================
+# Unity Generated Folders
+# =========================================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+
+# =========================================
+# Unity Packages (cache)
+# =========================================
+*.unitypackage
+
+# =========================================
+# IDE / Editor folders
+# =========================================
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.user
+*.unityproj
+*.booproj
+*.tmp
+*.pidb
+*.suo
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Rider
+/.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+
+# =========================================
+# OS generated
+# =========================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# =========================================
+# Builds (custom outputs)
+# =========================================
+*.apk
+*.aab
+*.exe
+*.app
+*.dll
+*.dylib
+*.so
+
+# =========================================
+# Addressables / Cache / Generated
+# =========================================
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.json
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.hash
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bundle
+
+# =========================================
+# Crash / logs / profiling
+# =========================================
+crash-report.log
+sysinfo.txt
+
+# =========================================
+# Shader cache
+# =========================================
+*.shadercache
+
+# =========================================
+# Keep important Unity files
+# (DO NOT IGNORE)
+# Assets/
+# Packages/
+# ProjectSettings/
+# =========================================
