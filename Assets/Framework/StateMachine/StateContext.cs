@@ -6,7 +6,6 @@ using Framework.Commands;
 using Framework.Animation;
 using Gameplay.Abilities;
 using Gameplay.AI.Faction;
-using Gameplay.AI.Formation;
 using Gameplay.AI.Memory;
 using Gameplay.AI.Perception;
 using Gameplay.AI.Squad;
@@ -18,77 +17,83 @@ namespace Framework.StateMachine
     public class StateContext
     {
         // =========================================
-        // CORE INPUT / EXECUTION
+        // CORE — always present, never optional
         // =========================================
-        public InputState Input;
-        public CommandQueue Commands;
+        public InputState    Input;
+        public ICommandQueue Commands;   // interface — not concrete CommandQueue
 
-        public Health HealthData;
+        public Health          HealthData;
         public HealthComponent HealthComp;
-        public Transform Self;
+        public Transform       Self;
 
         public AnimationRequest? AnimationRequest;
 
         // =========================================
-        // CONTEXT SYSTEMS
+        // AI LOD + SYSTEM CONTROL LAYER
         // =========================================
-        public PerceptionContext PerceptionContext = new();
-        public MemoryContext MemoryContext = new();
-        public AlertContext AlertContext = new();
-        public SquadContext SquadContext = new();
+        public AIExecutionContext Execution  = new AIExecutionContext();
+        public ulong              SystemMask = ulong.MaxValue;
 
         // =========================================
-        // BACKWARD COMPATIBILITY
+        // MODULAR SUB-CONTEXTS — all nullable / opt-in
+        // =========================================
+        public PerceptionContext PerceptionContext;
+        public MemoryContext     MemoryContext;
+        public AlertContext      AlertContext;
+        public SquadContext      SquadContext;
+
+        // =========================================
+        // BACKWARD-COMPATIBILITY ACCESSORS
         // =========================================
         public PerceptionState Perception
         {
-            get => PerceptionContext.State;
-            set => PerceptionContext.State = value;
+            get => PerceptionContext?.State;
+            set { if (PerceptionContext != null) PerceptionContext.State = value; }
         }
 
         public Transform Target
         {
-            get => PerceptionContext.Target;
-            set => PerceptionContext.Target = value;
+            get => PerceptionContext?.Target;
+            set { if (PerceptionContext != null) PerceptionContext.Target = value; }
         }
 
         public List<Transform> VisibleTargets
         {
-            get => PerceptionContext.VisibleTargets;
-            set => PerceptionContext.VisibleTargets = value;
+            get => PerceptionContext?.VisibleTargets;
+            set { if (PerceptionContext != null) PerceptionContext.VisibleTargets = value; }
         }
 
         public AIMemory Memory
         {
-            get => MemoryContext.Memory;
-            set => MemoryContext.Memory = value;
+            get => MemoryContext?.Memory;
+            set { if (MemoryContext != null) MemoryContext.Memory = value; }
         }
 
         public AlertLevel AlertLevel
         {
-            get => AlertContext.Level;
-            set => AlertContext.Level = value;
+            get => AlertContext?.Level ?? AlertLevel.Calm;
+            set { if (AlertContext != null) AlertContext.Level = value; }
         }
 
         public float AlertValue
         {
-            get => AlertContext.Value;
-            set => AlertContext.Value = value;
+            get => AlertContext?.Value ?? 0f;
+            set { if (AlertContext != null) AlertContext.Value = value; }
         }
 
         // =========================================
         // EMOTION
         // =========================================
-        public float Morale = 1f;
-        public float Fear = 0f;
+        public float Morale      = 1f;
+        public float Fear        = 0f;
         public float Suppression;
 
         // =========================================
         // COMBAT
         // =========================================
         public AbilitySystem Abilities;
-        public bool WasHit;
-        public Vector3 HitDirection;
+        public bool          WasHit;
+        public Vector3       HitDirection;
 
         // =========================================
         // FACTION
@@ -96,11 +101,15 @@ namespace Framework.StateMachine
         public Team Team;
 
         // =========================================
-        // STEP 5: AI LOD + SYSTEM CONTROL LAYER
+        // DIRECTOR DATA
+        // Written each frame by DirectorSystem
         // =========================================
-        public AIExecutionContext Execution = new AIExecutionContext();
+        public float DirectorIntensity = 0f;
 
-        // Optional future: bitmask system activation (not used yet)
-        public ulong SystemMask = ulong.MaxValue;
+        // =========================================
+        // SQUAD STRATEGY
+        // Written each frame by SquadAISystem
+        // =========================================
+        public SquadStrategy SquadStrategy = SquadStrategy.Idle;
     }
 }

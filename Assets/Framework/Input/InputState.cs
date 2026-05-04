@@ -1,5 +1,3 @@
-
-
 using UnityEngine;
 
 namespace Framework.Input
@@ -7,6 +5,7 @@ namespace Framework.Input
     public class InputState
     {
         public Vector2 Move;
-        public bool AttackPressed;
+        public Vector2 Look;          // mouse delta / right stick
+        public bool    AttackPressed;
     }
 }

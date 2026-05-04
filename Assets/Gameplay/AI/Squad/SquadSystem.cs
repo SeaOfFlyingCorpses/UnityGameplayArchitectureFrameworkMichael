@@ -1,20 +1,35 @@
 using UnityEngine;
 using Framework.StateMachine;
+using Framework.Core;
 
 namespace Gameplay.AI.Squad
 {
     public class SquadSystem : MonoBehaviour
     {
-        public static SquadSystem Instance;
+        // =========================================
+        // No more "public static Instance"
+        // Retrieve via: ServiceLocator.Get<SquadSystem>()
+        // =========================================
 
         public SquadContext GlobalSquad = new SquadContext();
 
         private void Awake()
         {
-            Instance = this;
+            ServiceLocator.Register<SquadSystem>(this);
         }
 
-        public void Tick()
+        private void OnDestroy()
+        {
+            ServiceLocator.Unregister<SquadSystem>();
+        }
+
+        // =========================================
+        // SELF-TICKING (Step 5a)
+        // SquadSystem now ticks itself once per frame
+        // via Unity's Update — exactly once, globally.
+        // SquadAISystem no longer calls Tick().
+        // =========================================
+        private void Update()
         {
             if (GlobalSquad.Leader == null)
                 return;
@@ -24,12 +39,14 @@ namespace Gameplay.AI.Squad
             GlobalSquad.UpdateMoralInfluence();
         }
 
+        // =========================================
+        // AGENT REGISTRATION — unchanged
+        // =========================================
         public void Register(StateContext context)
         {
             if (context == null)
                 return;
 
-            // ✅ WRAP StateContext INTO SquadMemberData
             foreach (var m in GlobalSquad.Members)
                 if (m.Context == context)
                     return;

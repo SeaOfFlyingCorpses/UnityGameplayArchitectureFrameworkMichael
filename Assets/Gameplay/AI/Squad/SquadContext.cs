@@ -5,14 +5,18 @@ using Gameplay.AI.Threat;
 
 namespace Gameplay.AI.Squad
 {
+    // =========================================
+    // SquadContext
+    // Pure data object — owns no singletons,
+    // makes no ServiceLocator calls.
+    // All logic operates on the data it holds.
+    // =========================================
     public class SquadContext
     {
         public List<SquadMemberData> Members = new();
-
-        public SquadMemberData Leader;
-
-        public SquadStrategy CurrentStrategy;
-        public Transform CurrentTarget;
+        public SquadMemberData       Leader;
+        public SquadStrategy         CurrentStrategy;
+        public Transform             CurrentTarget;
 
         public void UpdateStrategy()
         {
@@ -23,10 +27,8 @@ namespace Gameplay.AI.Squad
 
             if (perception != null && perception.CanSeeTarget)
                 CurrentStrategy = SquadStrategy.Engage;
-
             else if (Leader.Context.Memory != null && Leader.Context.Memory.HasTargetMemory)
                 CurrentStrategy = SquadStrategy.Chase;
-
             else
                 CurrentStrategy = SquadStrategy.Search;
         }
@@ -66,11 +68,16 @@ namespace Gameplay.AI.Squad
             if (avgFear > 0.7f)
                 CurrentStrategy = SquadStrategy.Retreat;
 
+            // Spread average fear to non-leaders — no singleton needed,
+            // all data is already on the members we hold
             foreach (var m in Members)
             {
                 if (m != Leader)
-                    m.Context.Fear =
-                        Mathf.Lerp(m.Context.Fear, avgFear, Time.deltaTime * 0.5f);
+                    m.Context.Fear = Mathf.Lerp(
+                        m.Context.Fear,
+                        avgFear,
+                        Time.deltaTime * 0.5f
+                    );
             }
         }
 

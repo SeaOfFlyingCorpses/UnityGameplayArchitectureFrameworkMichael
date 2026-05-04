@@ -6,6 +6,7 @@ using Framework.StateMachine.States;
 using Framework.Commands;
 using Framework.Input;
 using Framework.AI.Systems;
+using Framework.Core;
 
 using Gameplay.AI.Perception;
 using Gameplay.AI.Group;
@@ -13,6 +14,7 @@ using Gameplay.AI.Squad;
 using Gameplay.AI.Director;
 using Gameplay.AI.Memory;
 using Gameplay.AI.Faction;
+using Gameplay.AI.States;
 
 using Gameplay.Systems.Health;
 using Gameplay.Abilities;
@@ -25,20 +27,35 @@ namespace Gameplay.AI
         // =========================================
         // CORE STATE
         // =========================================
-        private StateMachine _stateMachine;
-        private StateContext _context;
+        private StateMachine    _stateMachine;
+        private StateContext    _context;
+        private AISystemManager _aiSystems;
 
         // =========================================
         // REFERENCES
         // =========================================
         [Header("References")]
         public PerceptionSystem perception;
-        public HealthComponent healthComponent;
-        public Transform playerTransform;
-        public Rigidbody rb;
+        public HealthComponent  healthComponent;
+        public Rigidbody        rb;
 
         [Header("AI Settings")]
         public Team team;
+
+        // =========================================
+        // TARGET SETTINGS
+        // Set enemyLayer to the layer your enemies
+        // are on. Allies will auto-target enemies,
+        // enemies will auto-target the player.
+        // =========================================
+        [Header("Targeting")]
+        public Transform playerTransform;
+        public LayerMask enemyLayer;
+
+        // =========================================
+        // STATE FACTORY
+        // =========================================
+        protected IAIStateFactory StateFactory;
 
         // =========================================
         // GLOBAL REGISTRY
@@ -82,9 +99,17 @@ namespace Gameplay.AI
         // =========================================
         private void CreateContext()
         {
+            // =========================================
+            // TARGET SELECTION
+            // Enemies target the player directly.
+            // Allies scan for the nearest enemy
+            // using the enemyLayer mask.
+            // =========================================
+            Transform initialTarget = ResolveInitialTarget();
+
             _context = new StateContext
             {
-                Input = new InputState(),
+                Input    = new InputState(),
                 Commands = new CommandQueue(),
 
                 HealthData = healthComponent.GetHealth(),
@@ -94,19 +119,50 @@ namespace Gameplay.AI
 
                 PerceptionContext = new Gameplay.AI.Perception.PerceptionContext
                 {
-                    State = new PerceptionState(),
-                    Target = playerTransform,
+                    State          = new PerceptionState(),
+                    Target         = initialTarget,
                     VisibleTargets = new List<Transform>()
                 },
 
-                Memory = new AIMemory(),
+                MemoryContext = new Gameplay.AI.Memory.MemoryContext(),
+                AlertContext  = new Framework.AI.Alert.AlertContext(),
+                SquadContext  = new Gameplay.AI.Squad.SquadContext(),
+
                 Team = team
             };
         }
 
-        // =========================================
-        // REGISTRATION LAYER (ONLY THIS LEFT)
-        // =========================================
+        private Transform ResolveInitialTarget()
+        {
+            // Enemies always target the player
+            if (team == Team.Enemy)
+                return playerTransform;
+
+            // Allies scan for the nearest enemy on the enemy layer
+            if (team == Team.Ally && enemyLayer != 0)
+            {
+                var hits = Physics.OverlapSphere(transform.position, 100f, enemyLayer);
+
+                float     bestDist   = float.MaxValue;
+                Transform bestTarget = null;
+
+                foreach (var hit in hits)
+                {
+                    float dist = Vector3.Distance(transform.position, hit.transform.position);
+                    if (dist < bestDist)
+                    {
+                        bestDist   = dist;
+                        bestTarget = hit.transform;
+                    }
+                }
+
+                // Fall back to player if no enemies found yet
+                return bestTarget != null ? bestTarget : playerTransform;
+            }
+
+            return playerTransform;
+        }
+
         private void RegisterSelf()
         {
             Registry[transform] = _context;
@@ -114,28 +170,38 @@ namespace Gameplay.AI
 
         private void BindSystems()
         {
-            if (perception != null)
+            _aiSystems = new AISystemManager();
+            AISystemsBootstrap.RegisterDefaults(_aiSystems);
+
+            var groupManager = ServiceLocator.Get<AIGroupManager>();
+            if (groupManager != null)
             {
-                perception.context = _context;
-                perception.target = playerTransform;
+                _aiSystems.Register(new AIGroupSystem(groupManager));
+                groupManager.Register(_context);
             }
 
-            // NOTE:
-            // These systems are now assumed to be handled by AISystemManager
-            // We only ensure membership here — NOT ownership.
-
-            AIGroupManager.Instance?.Register(_context);
-            SquadSystem.Instance?.Register(_context);
+            ServiceLocator.Get<SquadSystem>()?.Register(_context);
 
             var stagger = GetComponent<StaggerSystem>();
             if (stagger != null && rb != null)
                 stagger.Register(healthComponent, rb);
 
-            // abilities remain agent-owned (valid responsibility)
+            var death = GetComponent<DeathSystem>();
+            if (death != null)
+                death.Register(healthComponent, rb);
+
             _context.Abilities = new AbilitySystem();
             _context.Abilities.Register(
                 Gameplay.Abilities.Definitions.BasicAttackAbility.Create()
             );
+
+            if (perception != null)
+            {
+                perception.context = _context;
+
+                // Perception target matches initial target
+                perception.target = _context.PerceptionContext.Target;
+            }
         }
 
         private void BindEvents()
@@ -143,22 +209,40 @@ namespace Gameplay.AI
             if (healthComponent == null)
                 return;
 
-            healthComponent.OnHit += OnHit;
+            healthComponent.OnHit   += OnHit;
             healthComponent.OnDeath += OnDeath;
         }
 
+        // =========================================
+        // STATE MACHINE
+        // =========================================
         private void CreateStateMachine()
         {
+            if (StateFactory == null)
+                StateFactory = CreateFactory();
+
             _stateMachine = new StateMachine(_context);
-            _stateMachine.ChangeState(new CombatState());
+            _stateMachine.ChangeState(StateFactory.Build(_context));
+        }
+
+        protected virtual IAIStateFactory CreateFactory()
+        {
+            // Use component on this GameObject if present —
+            // lets you tune values in the Inspector per agent
+            var factory = GetComponent<CombatAIStateFactory>();
+            if (factory != null)
+                return factory;
+
+            // Fallback — CombatAIStateFactory is a MonoBehaviour so
+            // we cannot use new. Return a default inline factory instead.
+            return new DefaultCombatFactory();
         }
 
         private void RegisterDirector()
         {
-            if (AIDirector.Instance != null)
-            {
-                AIDirector.Instance.State.ActiveEnemies++;
-            }
+            var director = ServiceLocator.Get<AIDirector>();
+            if (director != null)
+                director.State.ActiveEnemies++;
         }
 
         // =========================================
@@ -171,7 +255,7 @@ namespace Gameplay.AI
 
         private void TickAISystems()
         {
-            AISystemManager.UpdateAll(_context);
+            _aiSystems?.UpdateAll(_context);
         }
 
         private void TickStateMachine()
@@ -196,19 +280,21 @@ namespace Gameplay.AI
         {
             Registry.Remove(transform);
 
-            AIGroupManager.Instance?.Unregister(_context);
-            SquadSystem.Instance?.Unregister(_context);
+            ServiceLocator.Get<AIGroupManager>()?.Unregister(_context);
+            ServiceLocator.Get<SquadSystem>()?.Unregister(_context);
 
-            if (AIDirector.Instance != null)
-            {
-                AIDirector.Instance.State.ActiveEnemies--;
-            }
+            var director = ServiceLocator.Get<AIDirector>();
+            if (director != null)
+                director.State.ActiveEnemies--;
 
             if (healthComponent != null)
             {
-                healthComponent.OnHit -= OnHit;
+                healthComponent.OnHit   -= OnHit;
                 healthComponent.OnDeath -= OnDeath;
             }
+
+            _aiSystems?.Clear();
+            _aiSystems = null;
 
             if (_context != null)
                 _context.Commands = null;
@@ -221,9 +307,29 @@ namespace Gameplay.AI
         // =========================================
         private void OnHit(Vector3 hitPoint)
         {
-            _context.WasHit = true;
-            _context.HitDirection =
-                (transform.position - hitPoint).normalized;
+            _context.WasHit       = true;
+            _context.HitDirection = (transform.position - hitPoint).normalized;
+        }
+        // =========================================
+        // DEFAULT COMBAT FACTORY
+        // Pure C# fallback — used when no
+        // CombatAIStateFactory component is present.
+        // Add CombatAIStateFactory as a component
+        // to get Inspector-tunable values instead.
+        // =========================================
+        private class DefaultCombatFactory : IAIStateFactory
+        {
+            public IState Build(StateContext context)
+            {
+                var config  = new CombatStateConfig();
+                var combat  = new CombatState(config);
+                var idle    = new IdleState();
+                var search  = new SearchState(idle);
+                var chase   = new ChaseState(combat, search);
+                var stagger = new StaggerState(combat);
+
+                return combat;
+            }
         }
     }
 }

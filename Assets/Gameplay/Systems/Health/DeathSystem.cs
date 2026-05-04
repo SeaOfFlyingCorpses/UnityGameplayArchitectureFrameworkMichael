@@ -1,33 +1,40 @@
+using System;
 using UnityEngine;
 
 namespace Gameplay.Systems.Health
 {
     public class DeathSystem : MonoBehaviour
     {
+        [SerializeField] private float destroyDelay = 2f;
+
+        public event Action OnDeath;
+
         public void Register(HealthComponent health, Rigidbody rb)
         {
-            health.OnDeath += () =>
+            if (health == null)
+                return;
+
+            health.OnDeath += () => HandleDeath(health, rb);
+        }
+
+        private void HandleDeath(HealthComponent health, Rigidbody rb)
+        {
+            if (rb != null)
             {
-                // stop physics
-                if (rb != null)
-                {
-                    rb.linearVelocity = Vector3.zero;
-                    rb.isKinematic = true;
-                }
+                // Zero velocity BEFORE setting kinematic —
+                // setting linearVelocity on a kinematic body causes a warning
+                rb.linearVelocity  = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic     = true;
+            }
 
-                // disable AI (if present)
-                var ai = health.GetComponent<Gameplay.AI.AIController>();
-                if (ai != null)
-                    ai.enabled = false;
+            var col = health.GetComponent<Collider>();
+            if (col != null)
+                col.enabled = false;
 
-                // disable collider
-                var col = health.GetComponent<Collider>();
-                if (col != null)
-                    col.enabled = false;
+            OnDeath?.Invoke();
 
-                // optional: destroy after delay
-                Destroy(health.gameObject, 2f);
-            };
+            Destroy(health.gameObject, destroyDelay);
         }
     }
 }

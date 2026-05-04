@@ -1,4 +1,5 @@
 using Framework.StateMachine;
+using Framework.Core;
 using UnityEngine;
 
 namespace Gameplay.AI.Squad
@@ -9,11 +10,10 @@ namespace Gameplay.AI.Squad
 
         public void Assign(StateContext context)
         {
-            if (SquadSystem.Instance == null)
-                return;
+            var squad = ServiceLocator.Get<SquadSystem>()?.GlobalSquad;
 
-            // find matching member
-            var squad = SquadSystem.Instance.GlobalSquad;
+            if (squad == null)
+                return;
 
             foreach (var m in squad.Members)
             {

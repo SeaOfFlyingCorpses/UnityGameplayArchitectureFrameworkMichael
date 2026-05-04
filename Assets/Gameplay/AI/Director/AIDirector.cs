@@ -1,16 +1,25 @@
 using UnityEngine;
+using Framework.Core;
 
 namespace Gameplay.AI.Director
 {
     public class AIDirector : MonoBehaviour
     {
-        public static AIDirector Instance;
+        // =========================================
+        // No more "public static Instance"
+        // Retrieve via: ServiceLocator.Get<AIDirector>()
+        // =========================================
 
         public AIDirectorState State = new AIDirectorState();
 
         private void Awake()
         {
-            Instance = this;
+            ServiceLocator.Register<AIDirector>(this);
+        }
+
+        private void OnDestroy()
+        {
+            ServiceLocator.Unregister<AIDirector>();
         }
 
         private void Update()
@@ -21,18 +30,14 @@ namespace Gameplay.AI.Director
 
         private void UpdateIntensity()
         {
-            // intensity grows over time
             State.Intensity += Time.deltaTime * 0.05f;
-
-            // clamp
-            State.Intensity = Mathf.Clamp01(State.Intensity);
+            State.Intensity  = Mathf.Clamp01(State.Intensity);
         }
 
         private void UpdateSpawning()
         {
             State.TimeSinceLastWave += Time.deltaTime;
 
-            // dynamic spawn timing
             float spawnDelay = Mathf.Lerp(10f, 2f, State.Intensity);
 
             if (State.TimeSinceLastWave >= spawnDelay)
@@ -58,7 +63,6 @@ namespace Gameplay.AI.Director
         {
             // hook into your spawn system later
             Debug.Log($"Spawn {count} enemies");
-
             State.ActiveEnemies += count;
         }
     }

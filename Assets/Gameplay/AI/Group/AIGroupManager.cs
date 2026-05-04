@@ -1,38 +1,34 @@
 using System.Collections.Generic;
 using Framework.StateMachine;
+using Framework.Core;
 using UnityEngine;
-using Framework.AI.Systems;
 
 namespace Gameplay.AI.Group
 {
     public class AIGroupManager : MonoBehaviour
     {
-        public static AIGroupManager Instance;
+        // =========================================
+        // No more "public static Instance"
+        // Retrieve via: ServiceLocator.Get<AIGroupManager>()
+        // =========================================
 
-        private List<StateContext> _agents = new();
+        private readonly List<StateContext> _agents = new();
 
         public Vector3 SharedLastKnownPosition;
-        public float SharedAlertLevel;
-
-        private AIGroupSystem _system;
+        public float   SharedAlertLevel;
 
         private void Awake()
         {
-            Instance = this;
-
-            // register system into AI pipeline
-            _system = new AIGroupSystem(this);
-            AISystemManager.Register(_system);
+            ServiceLocator.Register<AIGroupManager>(this);
         }
 
         private void OnDestroy()
         {
-            if (_system != null)
-                AISystemManager.Unregister(_system);
+            ServiceLocator.Unregister<AIGroupManager>();
         }
 
         // =========================================
-        // AGENT REGISTRATION (UNCHANGED)
+        // AGENT REGISTRATION — unchanged
         // =========================================
         public void Register(StateContext context)
         {
@@ -48,12 +44,11 @@ namespace Gameplay.AI.Group
             if (context == null)
                 return;
 
-            if (_agents.Contains(context))
-                _agents.Remove(context);
+            _agents.Remove(context);
         }
 
         // =========================================
-        // GLOBAL SIGNAL
+        // GLOBAL SIGNAL — unchanged
         // =========================================
         public void BroadcastAlert(Vector3 position, float alertStrength)
         {
@@ -62,7 +57,7 @@ namespace Gameplay.AI.Group
         }
 
         // =========================================
-        // ACCESS FOR SYSTEM
+        // ACCESS FOR SYSTEM — unchanged
         // =========================================
         public List<StateContext> GetAgents()
         {

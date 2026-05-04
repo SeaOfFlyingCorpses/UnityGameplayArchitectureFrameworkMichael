@@ -1,10 +1,17 @@
 using System.Collections.Generic;
-using UnityEngine;
-using Framework.AI.Alert;
+using Framework.Animation;
+using Framework.StateMachine;
 using Gameplay.Systems.Movement.Commands;
+using UnityEngine;
 
-namespace Framework.StateMachine.States
+namespace Gameplay.AI.States
 {
+    // =========================================
+    // ChaseState
+    // Framework state — depends only on StateContext.
+    // Reads alert level and memory through context.
+    // No direct Gameplay system imports.
+    // =========================================
     public class ChaseState : IState
     {
         private readonly List<Transition> _transitions = new();
@@ -20,10 +27,7 @@ namespace Framework.StateMachine.States
 
         public void Enter(StateContext context)
         {
-            context.AnimationRequest =
-                new Framework.Animation.AnimationRequest(
-                    Framework.Animation.AnimationType.Move
-                );
+            context.AnimationRequest = new AnimationRequest(AnimationType.Move);
         }
 
         public void Update(StateContext context)
@@ -31,9 +35,10 @@ namespace Framework.StateMachine.States
             if (context.Target == null)
                 return;
 
-            Vector3 direction = context.Target.position - context.Self.position;
-            float distance = direction.magnitude;
+            var   direction = context.Target.position - context.Self.position;
+            float distance  = direction.magnitude;
 
+            // do nothing while calm — alert level read through context
             if (context.AlertLevel == Framework.AI.Alert.AlertLevel.Calm)
                 return;
 
@@ -45,32 +50,22 @@ namespace Framework.StateMachine.States
             if (context.AlertLevel == Framework.AI.Alert.AlertLevel.Combat)
                 speed = 5.5f;
 
+            // close enough to attack
             if (distance <= 2f)
             {
-                context.AnimationRequest =
-                    new Framework.Animation.AnimationRequest(
-                        Framework.Animation.AnimationType.Attack
-                    );
-
+                context.AnimationRequest = new AnimationRequest(AnimationType.Attack);
                 return;
             }
 
             context.Commands.Enqueue(
-                new Gameplay.Systems.Movement.Commands.MoveCommand(
-                    context.Self,
-                    direction.normalized,
-                    speed
-                )
+                new MoveCommand(context.Self, direction.normalized, speed)
             );
 
-            // MEMORY WRITE (SAFE)
+            // memory write — safe null check
             if (context.Memory != null && context.Target != null)
                 context.Memory.Remember(context.Target.position, Time.time);
 
-            context.AnimationRequest =
-                new Framework.Animation.AnimationRequest(
-                    Framework.Animation.AnimationType.Move
-                );
+            context.AnimationRequest = new AnimationRequest(AnimationType.Move);
         }
 
         public void Exit() { }
