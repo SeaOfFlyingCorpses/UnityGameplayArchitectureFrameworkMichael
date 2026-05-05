@@ -7,12 +7,27 @@ namespace Gameplay.AI.Director
     {
         public AIDirectorState State = new AIDirectorState();
 
-        [Header("Spawning")]
-        [Tooltip("Pool key to spawn enemies from. Must match a key in PoolRegistry.")]
-        public string enemyPoolKey = "Enemy";
+        // =========================================
+        // SPAWN ENTRY
+        // Each entry is one pool type with its own
+        // spawn weight and spawn points.
+        // Add as many as you need in the Inspector.
+        // =========================================
+        [System.Serializable]
+        public class SpawnEntry
+        {
+            [Tooltip("Must match a key registered in PoolRegistry (e.g. 'Enemy', 'EliteEnemy')")]
+            public string      poolKey;
 
-        [Tooltip("Spawn points — enemies appear at one of these randomly.")]
-        public Transform[] spawnPoints;
+            [Tooltip("Relative weight — higher = spawns more often")]
+            public float       weight = 1f;
+
+            [Tooltip("Spawn points for this type — picked randomly")]
+            public Transform[] spawnPoints;
+        }
+
+        [Header("Spawning")]
+        public SpawnEntry[] spawnEntries;
 
         private void Awake()
         {
@@ -62,35 +77,58 @@ namespace Gameplay.AI.Director
         {
             var registry = ServiceLocator.Get<PoolRegistry>();
 
-            if (registry == null || !registry.HasPool(enemyPoolKey))
-            {
-                // Pool not set up yet — log once, don't spam
+            if (registry == null || spawnEntries == null || spawnEntries.Length == 0)
                 return;
-            }
-
-            if (spawnPoints == null || spawnPoints.Length == 0)
-            {
-                Debug.LogWarning("[AIDirector] No spawn points assigned.");
-                return;
-            }
 
             for (int i = 0; i < count; i++)
             {
                 if (State.ActiveEnemies >= State.MaxEnemies)
                     break;
 
-                // Pick a random spawn point
-                var point = spawnPoints[Random.Range(0, spawnPoints.Length)];
+                var entry = PickEntry();
 
-                var obj = registry.Get(
-                    enemyPoolKey,
-                    point.position,
-                    point.rotation
-                );
+                if (entry == null)
+                    continue;
+
+                if (!registry.HasPool(entry.poolKey))
+                    continue;
+
+                if (entry.spawnPoints == null || entry.spawnPoints.Length == 0)
+                {
+                    Debug.LogWarning($"[AIDirector] SpawnEntry '{entry.poolKey}' has no spawn points.");
+                    continue;
+                }
+
+                var point = entry.spawnPoints[Random.Range(0, entry.spawnPoints.Length)];
+                var obj   = registry.Get(entry.poolKey, point.position, point.rotation);
 
                 if (obj != null)
                     State.ActiveEnemies++;
             }
+        }
+
+        // =========================================
+        // WEIGHTED RANDOM PICK
+        // Higher weight = more likely to be chosen
+        // =========================================
+        private SpawnEntry PickEntry()
+        {
+            float total = 0f;
+
+            foreach (var entry in spawnEntries)
+                total += entry.weight;
+
+            float roll = Random.Range(0f, total);
+            float cumulative = 0f;
+
+            foreach (var entry in spawnEntries)
+            {
+                cumulative += entry.weight;
+                if (roll <= cumulative)
+                    return entry;
+            }
+
+            return spawnEntries[spawnEntries.Length - 1];
         }
     }
 }
