@@ -6,7 +6,10 @@ using Framework.StateMachine.States;
 using Framework.Commands;
 using Framework.Input;
 using Framework.AI.Systems;
+using Framework.AI.Squad;
+using Framework.AI.Lifecycle;
 using Framework.Core;
+using Framework.Animation;
 
 using Gameplay.AI.Perception;
 using Gameplay.AI.Group;
@@ -14,15 +17,18 @@ using Gameplay.AI.Squad;
 using Gameplay.AI.Director;
 using Gameplay.AI.Memory;
 using Gameplay.AI.Faction;
+using Framework.AI.Faction;
 using Gameplay.AI.States;
 
 using Gameplay.Systems.Health;
 using Gameplay.Abilities;
 using Gameplay.Combat;
+using Gameplay.AI.Systems;
+using Gameplay.States;
 
 namespace Gameplay.AI
 {
-    public class AIController : MonoBehaviour
+    public class AIController : MonoBehaviour, IAIEntity
     {
         // =========================================
         // CORE STATE
@@ -51,7 +57,21 @@ namespace Gameplay.AI
         // =========================================
         // UNITY LIFECYCLE
         // =========================================
-        private void Awake()
+        private void Awake()   => Initialize();
+        private void Update()
+        {
+            TickPerception();
+            TickAISystems();
+            TickStateMachine();
+            ResetFrameFlags();
+            ExecuteCommands();
+        }
+        private void OnDestroy() => Dispose();
+
+        // =========================================
+        // IAIEntity
+        // =========================================
+        public void Initialize()
         {
             CreateContext();
             RegisterSelf();
@@ -61,24 +81,8 @@ namespace Gameplay.AI
             RegisterDirector();
         }
 
-        private void Update()
-        {
-            TickPerception();
-            TickAISystems();
-            TickStateMachine();
-            ResetFrameFlags();
-            ExecuteCommands();
-        }
-
-        private void OnDestroy()
-        {
-            Cleanup();
-        }
-
-        private void OnDeath()
-        {
-            Cleanup();
-        }
+        public void OnDeath() => Cleanup();
+        public void Dispose() => Cleanup();
 
         // =========================================
         // INITIALIZATION
@@ -112,7 +116,6 @@ namespace Gameplay.AI
 
         private void RegisterSelf()
         {
-            // Use AIAgentRegistry service instead of static Dictionary
             ServiceLocator.Get<AIAgentRegistry>()?.Register(transform, _context);
         }
 
@@ -121,6 +124,7 @@ namespace Gameplay.AI
             _aiSystems = new AISystemManager();
             AISystemsBootstrap.RegisterDefaults(_aiSystems);
 
+            // Group manager
             var groupManager = ServiceLocator.Get<AIGroupManager>();
             if (groupManager != null)
             {
@@ -128,26 +132,39 @@ namespace Gameplay.AI
                 groupManager.Register(_context);
             }
 
+            // Squad
             ServiceLocator.Get<SquadSystem>()?.Register(_context);
 
+            // Stagger
             var stagger = GetComponent<StaggerSystem>();
             if (stagger != null && rb != null)
                 stagger.Register(healthComponent, rb);
 
+            // Death
             var death = GetComponent<DeathSystem>();
             if (death != null)
                 death.Register(healthComponent, rb);
 
+            // Abilities
             _context.Abilities = new AbilitySystem();
-            _context.Abilities.Register(
+            (_context.Abilities as AbilitySystem)?.Register(
                 Gameplay.Abilities.Definitions.BasicAttackAbility.Create()
             );
 
+            // Perception
             if (perception != null)
             {
                 perception.context = _context;
                 perception.target  = playerTransform;
             }
+
+            // =========================================
+            // ANIMATION SYSTEM — inject context
+            // No manual Inspector wiring needed
+            // =========================================
+            var animSystem = GetComponent<AnimationSystem>();
+            if (animSystem != null)
+                animSystem.SetContext(_context);
         }
 
         private void BindEvents()
@@ -187,39 +204,18 @@ namespace Gameplay.AI
         // =========================================
         // UPDATE LOOP
         // =========================================
-        private void TickPerception()
-        {
-            perception?.Tick();
-        }
-
-        private void TickAISystems()
-        {
-            _aiSystems?.UpdateAll(_context);
-        }
-
-        private void TickStateMachine()
-        {
-            _stateMachine?.Update();
-        }
-
-        private void ResetFrameFlags()
-        {
-            _context.WasHit = false;
-        }
-
-        private void ExecuteCommands()
-        {
-            _context.Commands?.ExecuteAll();
-        }
+        private void TickPerception()   => perception?.Tick();
+        private void TickAISystems()    => _aiSystems?.UpdateAll(_context);
+        private void TickStateMachine() => _stateMachine?.Update();
+        private void ResetFrameFlags()  => _context.WasHit = false;
+        private void ExecuteCommands()  => _context.Commands?.ExecuteAll();
 
         // =========================================
         // CLEANUP
         // =========================================
         private void Cleanup()
         {
-            // Unregister from AIAgentRegistry instead of static Dictionary
             ServiceLocator.Get<AIAgentRegistry>()?.Unregister(transform);
-
             ServiceLocator.Get<AIGroupManager>()?.Unregister(_context);
             ServiceLocator.Get<SquadSystem>()?.Unregister(_context);
 
@@ -253,8 +249,6 @@ namespace Gameplay.AI
 
         // =========================================
         // DEFAULT COMBAT FACTORY
-        // Pure C# fallback when no
-        // CombatAIStateFactory component is present
         // =========================================
         private class DefaultCombatFactory : IAIStateFactory
         {
@@ -267,7 +261,25 @@ namespace Gameplay.AI
                 var chase   = new ChaseState(combat, search);
                 var stagger = new StaggerState(combat);
 
-                return combat;
+                idle.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.CanSeeTargetCondition(), chase));
+
+                chase.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.IsInAttackRangeCondition(), combat));
+
+                chase.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.TargetLostCondition(), idle));
+
+                combat.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.TargetLostCondition(), chase));
+
+                combat.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.WasHitCondition(), stagger));
+
+                stagger.AddTransition(new Framework.StateMachine.Transition(
+                    new Framework.StateMachine.Conditions.StaggerFinishedCondition(stagger), combat));
+
+                return idle;
             }
         }
     }

@@ -1,14 +1,14 @@
+using Framework.AI.Perception;
+
 namespace Gameplay.AI.Perception
 {
-    public class PerceptionState
+    public class PerceptionState : IPerceptionState
     {
-        public bool CanSeeTarget;
-        public bool IsTargetInAttackRange;
-        public float DistanceToTarget;
-
-        public float LastSeenTime;
-        public bool HasMemoryOfTarget;
-        
-        public float VisionStrength = 1f;
+        public bool  CanSeeTarget          { get; set; }
+        public bool  IsTargetInAttackRange { get; set; }
+        public float DistanceToTarget      { get; set; }
+        public float LastSeenTime          { get; set; }
+        public bool  HasMemoryOfTarget     { get; set; }
+        public float VisionStrength        { get; set; } = 1f;
     }
 }

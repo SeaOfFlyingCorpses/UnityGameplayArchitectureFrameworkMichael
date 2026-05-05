@@ -1,5 +1,6 @@
 using UnityEngine;
 using Framework.Input;
+using Gameplay.Input;
 
 namespace Gameplay.Player
 {

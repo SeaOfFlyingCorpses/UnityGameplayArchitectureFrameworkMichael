@@ -1,3 +1,4 @@
+using Framework.Systems.Health;
 using System;
 
 namespace Gameplay.Systems.Health
@@ -19,24 +20,16 @@ namespace Gameplay.Systems.Health
 
         public void Damage(int amount)
         {
-            if (IsDead)
-                return;
-
-            Value = System.Math.Max(0, Value - amount);
-
+            if (IsDead) return;
+            Value = Math.Max(0, Value - amount);
             OnChanged?.Invoke(Value);
-
-            if (IsDead)
-                OnDeath?.Invoke();
+            if (IsDead) OnDeath?.Invoke();
         }
 
         public void Heal(int amount)
         {
-            if (IsDead)
-                return;
-
-            Value = System.Math.Min(MaxValue, Value + amount);
-
+            if (IsDead) return;
+            Value = Math.Min(MaxValue, Value + amount);
             OnChanged?.Invoke(Value);
         }
 

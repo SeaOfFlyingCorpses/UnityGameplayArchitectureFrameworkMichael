@@ -1,14 +1,13 @@
 using UnityEngine;
-using Gameplay.Systems.Health;
+using Framework.Systems.Health;
 
 namespace Gameplay.Abilities
 {
     public class AbilityContext
     {
-        public Transform Self;
-        public Transform Target;
-
-        public HealthComponent SourceHealth;
-        public HealthComponent TargetHealth;
+        public Transform     Self;
+        public Transform     Target;
+        public IHealthComponent SourceHealth;
+        public IHealthComponent TargetHealth;
     }
 }

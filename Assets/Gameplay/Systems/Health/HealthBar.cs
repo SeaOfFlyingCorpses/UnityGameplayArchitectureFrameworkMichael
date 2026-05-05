@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Framework.Systems.Health;
 
 namespace Gameplay.Systems.Health
 {
@@ -21,7 +22,6 @@ namespace Gameplay.Systems.Health
                 return;
 
             _health.OnChanged += OnHealthChanged;
-
             Refresh(_health.Value, _health.MaxValue);
         }
 

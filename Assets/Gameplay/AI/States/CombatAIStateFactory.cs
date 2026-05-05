@@ -1,5 +1,6 @@
 using UnityEngine;
 using Framework.StateMachine;
+using Gameplay.States;
 using Framework.StateMachine.States;
 using Framework.StateMachine.Conditions;
 

@@ -2862,7 +2862,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Player.PlayerStateController
   inputHandler: {fileID: 1443509483}
   healthComponent: {fileID: 1443509482}
-  UseAI: 0
 --- !u!136 &1443509485
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -3784,6 +3783,9 @@ GameObject:
   - component: {fileID: 1973347101}
   - component: {fileID: 1973347104}
   - component: {fileID: 1973347105}
+  - component: {fileID: 1973347106}
+  - component: {fileID: 1973347108}
+  - component: {fileID: 1973347107}
   m_Layer: 0
   m_Name: _GameSystems
   m_TagString: Untagged
@@ -3844,8 +3846,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1d09ce4cb282b347ab026a178061e92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Director.AIDirector
-  enemyPoolKey: Enemy
-  spawnPoints: []
+  spawnEntries: []
 --- !u!114 &1973347104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3870,6 +3871,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19d507fe495bc554fb79e316f6526ed4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Framework.Core.PoolRegistry
+--- !u!114 &1973347106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4deffb26aa4ad3043820cbe7e833e8e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Framework.Core.SceneLifecycleManager
+--- !u!114 &1973347107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f51ab2d14e2dbd43b87203598a826dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.SceneLoader
+  transitionDelay: 0
+--- !u!114 &1973347108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8228240add552b14cb093806225cb9b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.PauseSystem
+  inputHandler: {fileID: 1443509483}
 --- !u!1 &2000010419
 GameObject:
   m_ObjectHideFlags: 0

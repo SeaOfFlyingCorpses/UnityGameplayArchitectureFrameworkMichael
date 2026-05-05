@@ -1,46 +1,34 @@
 using UnityEngine;
+using Framework.AI.Memory;
 
 namespace Gameplay.AI.Memory
 {
-    public class AIMemory
+    public class AIMemory : IAIMemory
     {
-        public Vector3 LastKnownPosition;
-        public float LastSeenTime;
+        public Vector3 LastKnownPosition { get; private set; }
+        public float   LastSeenTime      { get; private set; }
+        public bool    HasTargetMemory   { get; private set; }
 
-        public bool HasTargetMemory;
-
-        // =========================================
-        // MEMORY WRITE (called by states)
-        // =========================================
         public void Remember(Vector3 position, float time)
         {
             LastKnownPosition = position;
-            LastSeenTime = time;
-            HasTargetMemory = true;
+            LastSeenTime      = time;
+            HasTargetMemory   = true;
         }
 
-        // =========================================
-        // MEMORY CLEAR
-        // =========================================
         public void Forget()
         {
-            HasTargetMemory = false;
+            HasTargetMemory   = false;
             LastKnownPosition = Vector3.zero;
-            LastSeenTime = 0f;
+            LastSeenTime      = 0f;
         }
 
-        // =========================================
-        // OPTIONAL FUTURE HOOK (NOT USED YET)
-        // =========================================
+        // Optional decay — not part of interface, Gameplay-only
         public void TickDecay(float currentTime, float decayTime = 10f)
         {
-            if (!HasTargetMemory)
-                return;
-
+            if (!HasTargetMemory) return;
             if (currentTime - LastSeenTime > decayTime)
-            {
                 Forget();
-            }
         }
     }
 }

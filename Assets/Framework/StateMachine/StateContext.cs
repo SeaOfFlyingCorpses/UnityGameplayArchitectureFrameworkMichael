@@ -1,51 +1,54 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Framework.AI.Alert;
-using Framework.Input;
-using Framework.Commands;
-using Framework.Animation;
-using Gameplay.Abilities;
-using Gameplay.AI.Faction;
-using Gameplay.AI.Memory;
-using Gameplay.AI.Perception;
-using Gameplay.AI.Squad;
-using Gameplay.Systems.Health;
+using Framework.AI.Faction;
+using Framework.AI.Memory;
+using Framework.AI.Perception;
+using Framework.AI.Squad;
 using Framework.AI.Systems;
+using Framework.Abilities;
+using Framework.Animation;
+using Framework.Commands;
+using Framework.Input;
+using Framework.Systems.Health;
 
 namespace Framework.StateMachine
 {
+    // =========================================
+    // StateContext
+    // Zero Gameplay imports — pure Framework.
+    // The compiler enforces this via Framework.asmdef.
+    // =========================================
     public class StateContext
     {
         // =========================================
-        // CORE — always present, never optional
+        // CORE
         // =========================================
-        public InputState    Input;
-        public ICommandQueue Commands;   // interface — not concrete CommandQueue
-
-        public IHealth         HealthData;   // interface — swap any implementation
-        public HealthComponent HealthComp;
-        public Transform       Self;
-
+        public InputState        Input;
+        public ICommandQueue     Commands;
+        public IHealth           HealthData;
+        public IHealthComponent  HealthComp;
+        public Transform         Self;
         public AnimationRequest? AnimationRequest;
 
         // =========================================
-        // AI LOD + SYSTEM CONTROL LAYER
+        // AI LOD
         // =========================================
         public AIExecutionContext Execution  = new AIExecutionContext();
         public ulong              SystemMask = ulong.MaxValue;
 
         // =========================================
-        // MODULAR SUB-CONTEXTS — all nullable / opt-in
+        // MODULAR SUB-CONTEXTS
         // =========================================
-        public PerceptionContext PerceptionContext;
-        public MemoryContext     MemoryContext;
-        public AlertContext      AlertContext;
-        public SquadContext      SquadContext;
+        public IPerceptionContext PerceptionContext;
+        public IMemoryContext     MemoryContext;
+        public AlertContext       AlertContext;
+        public ISquadContext      SquadContext;
 
         // =========================================
-        // BACKWARD-COMPATIBILITY ACCESSORS
+        // BACKWARD-COMPAT ACCESSORS
         // =========================================
-        public PerceptionState Perception
+        public IPerceptionState Perception
         {
             get => PerceptionContext?.State;
             set { if (PerceptionContext != null) PerceptionContext.State = value; }
@@ -63,7 +66,7 @@ namespace Framework.StateMachine
             set { if (PerceptionContext != null) PerceptionContext.VisibleTargets = value; }
         }
 
-        public AIMemory Memory
+        public IAIMemory Memory
         {
             get => MemoryContext?.Memory;
             set { if (MemoryContext != null) MemoryContext.Memory = value; }
@@ -91,9 +94,9 @@ namespace Framework.StateMachine
         // =========================================
         // COMBAT
         // =========================================
-        public AbilitySystem Abilities;
-        public bool          WasHit;
-        public Vector3       HitDirection;
+        public IAbilitySystem Abilities;
+        public bool           WasHit;
+        public Vector3        HitDirection;
 
         // =========================================
         // FACTION
@@ -101,15 +104,10 @@ namespace Framework.StateMachine
         public Team Team;
 
         // =========================================
-        // DIRECTOR DATA
-        // Written each frame by DirectorSystem
+        // DIRECTOR / SQUAD DATA
+        // Written each frame by AI systems
         // =========================================
-        public float DirectorIntensity = 0f;
-
-        // =========================================
-        // SQUAD STRATEGY
-        // Written each frame by SquadAISystem
-        // =========================================
-        public SquadStrategy SquadStrategy = SquadStrategy.Idle;
+        public float         DirectorIntensity = 0f;
+        public SquadStrategy SquadStrategy     = SquadStrategy.Idle;
     }
 }

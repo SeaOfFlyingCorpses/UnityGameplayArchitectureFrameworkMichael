@@ -1,3 +1,4 @@
+using Framework.Systems.Health;
 using UnityEngine;
 
 namespace Gameplay.Systems.Health
@@ -5,7 +6,7 @@ namespace Gameplay.Systems.Health
     public class HealthDebugDisplay : MonoBehaviour
     {
         private HealthComponent    _healthComp;
-        private IHealth            _health;
+        private IHealth _health;
         private string             _healthType;
         private UnityEngine.Camera _cam;
 

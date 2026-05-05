@@ -1,13 +1,13 @@
 using UnityEngine;
+using Framework.AI.Squad;
 
 namespace Gameplay.AI.Formation
 {
-    public class FormationData
+    public class FormationData : IFormationData
     {
         public FormationType Type;
-
-        public float Spacing = 2f;
-        public Transform Leader;
+        public float         Spacing { get; set; } = 2f;
+        public Transform     Leader  { get; set; }
 
         public FormationData(FormationType type)
         {

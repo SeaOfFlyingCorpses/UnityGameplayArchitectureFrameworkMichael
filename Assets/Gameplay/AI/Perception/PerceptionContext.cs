@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Framework.AI.Perception;
 
 namespace Gameplay.AI.Perception
 {
-    public class PerceptionContext
+    public class PerceptionContext : IPerceptionContext
     {
-        public PerceptionState State;
-
-        public Transform Target;
-
-        public List<Transform> VisibleTargets;
+        public IPerceptionState  State          { get; set; }
+        public Transform         Target         { get; set; }
+        public List<Transform>   VisibleTargets { get; set; }
     }
 }

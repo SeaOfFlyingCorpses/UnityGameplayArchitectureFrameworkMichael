@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Gameplay.AI.Squad;
+using Framework.AI.Squad;
 using Gameplay.AI.Faction;
 using Gameplay.Systems.Movement.Commands;
 using Gameplay.Abilities;

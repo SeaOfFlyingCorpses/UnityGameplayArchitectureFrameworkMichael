@@ -1,19 +1,9 @@
-using UnityEngine;
+using Framework.AI.Memory;
 
 namespace Gameplay.AI.Memory
 {
-    public class MemoryContext
+    public class MemoryContext : IMemoryContext
     {
-        // =========================================
-        // CORE MEMORY OBJECT
-        // =========================================
-        public AIMemory Memory = new AIMemory();
-
-        // =========================================
-        // FUTURE EXTENSIONS (NOT USED YET)
-        // =========================================
-        // public float MemoryStrength;
-        // public float ForgetRate;
-        // public Transform LastKnownTarget;
+        public IAIMemory Memory { get; set; } = new AIMemory();
     }
 }

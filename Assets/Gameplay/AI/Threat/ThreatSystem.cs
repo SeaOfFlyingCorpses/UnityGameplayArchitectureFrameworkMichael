@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Gameplay.Systems.Health;
-using Gameplay.AI.Faction;
-using UnityEngine;
+using Framework.AI.Faction;
 using Framework.AI.Systems;
-using Framework.StateMachine;
-using Gameplay.AI;
 using Framework.Core;
+using Framework.StateMachine;
+using Gameplay.AI.Faction;
+using Gameplay.Systems.Health;
+using UnityEngine;
 
 namespace Gameplay.AI.Threat
 {
@@ -13,14 +13,10 @@ namespace Gameplay.AI.Threat
     {
         public AISystemCategory Category => AISystemCategory.Utility;
 
-        // =========================================
-        // GET BEST TARGET — filters by team
-        // Only returns targets hostile to caller
-        // =========================================
         public static Transform GetBestTarget(
             List<Transform> targets,
-            Transform self,
-            Team selfTeam = Team.Enemy)
+            Transform       self,
+            Team            selfTeam = Team.Enemy)
         {
             if (targets == null || targets.Count == 0 || self == null)
                 return null;
@@ -32,21 +28,13 @@ namespace Gameplay.AI.Threat
             {
                 if (t == null) continue;
 
-                // skip friendly targets
                 var registry = ServiceLocator.Get<AIAgentRegistry>();
                 if (registry != null && registry.TryGetContext(t, out var otherCtx))
-                {
                     if (otherCtx != null && !TeamRelationship.IsHostile(selfTeam, otherCtx.Team))
                         continue;
-                }
 
                 float score = Evaluate(t, self);
-
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    best      = t;
-                }
+                if (score > bestScore) { bestScore = score; best = t; }
             }
 
             return best;
@@ -64,16 +52,10 @@ namespace Gameplay.AI.Threat
             return score;
         }
 
-        // =========================================
-        // IAISystem UPDATE
-        // =========================================
         public void Update(StateContext context)
         {
-            if (context?.PerceptionContext?.VisibleTargets == null)
-                return;
-
-            if (context.PerceptionContext.VisibleTargets.Count == 0)
-                return;
+            if (context?.PerceptionContext?.VisibleTargets == null) return;
+            if (context.PerceptionContext.VisibleTargets.Count == 0) return;
 
             var best = GetBestTarget(
                 context.PerceptionContext.VisibleTargets,
