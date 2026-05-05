@@ -7,6 +7,7 @@ using Gameplay.Abilities;
 using Gameplay.AI;
 using Gameplay.Combat;
 using Gameplay.AI.Threat;
+using Framework.Core;
 
 namespace Framework.StateMachine.States
 {
@@ -67,8 +68,9 @@ namespace Framework.StateMachine.States
                 context.Target = target;
             }
 
-            // team check
-            if (AIController.Registry.TryGetValue(target, out var otherCtx))
+            // team check via AIAgentRegistry
+            var registry = ServiceLocator.Get<AIAgentRegistry>();
+            if (registry != null && registry.TryGetContext(target, out var otherCtx))
             {
                 if (otherCtx != null && !TeamRelationship.IsHostile(context.Team, otherCtx.Team))
                     return;

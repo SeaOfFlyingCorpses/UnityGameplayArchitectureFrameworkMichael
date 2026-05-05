@@ -1,32 +1,19 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Framework.Core
 {
-    // =========================================
-    // ServiceLocator
-    // A type-keyed registry for global services.
-    // Replaces all "public static Instance" patterns.
-    //
-    // REGISTER (from MonoBehaviour.Awake):
-    //   ServiceLocator.Register<ISquadSystem>(this);
-    //
-    // RETRIEVE (from anywhere):
-    //   var squad = ServiceLocator.Get<ISquadSystem>();
-    //   if (squad != null) squad.Register(_context);
-    //
-    // UNREGISTER (from MonoBehaviour.OnDestroy):
-    //   ServiceLocator.Unregister<ISquadSystem>();
-    //
-    // Rules:
-    //   - One instance per type at a time.
-    //   - Get<T>() returns null if not registered — always null-check.
-    //   - Register/Unregister are safe to call from any thread order.
-    //   - No exceptions thrown — silent null returns keep agents safe.
-    // =========================================
     public static class ServiceLocator
     {
         private static readonly Dictionary<Type, object> _services = new();
+
+        // =========================================
+        // Fired before Clear() wipes the registry.
+        // Systems can subscribe to do their own
+        // teardown before references go stale.
+        // =========================================
+        public static event Action OnClear;
 
         // =========================================
         // REGISTER
@@ -57,7 +44,7 @@ namespace Framework.Core
         }
 
         // =========================================
-        // HAS — check before get when needed
+        // HAS
         // =========================================
         public static bool Has<T>() where T : class
         {
@@ -65,10 +52,24 @@ namespace Framework.Core
         }
 
         // =========================================
-        // CLEAR — call on scene unload / teardown
+        // CLEAR — call before scene load / on teardown
         // =========================================
         public static void Clear()
         {
+            OnClear?.Invoke();
+            _services.Clear();
+        }
+
+        // =========================================
+        // AUTO-CLEAR on domain reload (enter play mode)
+        // Prevents stale services from a previous
+        // play session bleeding into the next one.
+        // =========================================
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnLoad()
+        {
+            OnClear?.Invoke();
+            OnClear = null;
             _services.Clear();
         }
     }

@@ -3,18 +3,12 @@ using UnityEngine.UI;
 
 namespace Gameplay.Systems.Health
 {
-    // =========================================
-    // HealthBar
-    // Subscribes to Health.OnChanged once and
-    // updates the fill only when health actually
-    // changes — zero per-frame polling.
-    // =========================================
     public class HealthBar : MonoBehaviour
     {
         public HealthComponent health;
         public Image           fill;
 
-        private Health _health;
+        private IHealth _health;
 
         private void Start()
         {
@@ -26,10 +20,8 @@ namespace Gameplay.Systems.Health
             if (_health == null)
                 return;
 
-            // Subscribe — update fill whenever health changes
             _health.OnChanged += OnHealthChanged;
 
-            // Set initial fill immediately
             Refresh(_health.Value, _health.MaxValue);
         }
 
@@ -39,10 +31,6 @@ namespace Gameplay.Systems.Health
                 _health.OnChanged -= OnHealthChanged;
         }
 
-        // =========================================
-        // EVENT HANDLER
-        // Called only when health actually changes
-        // =========================================
         private void OnHealthChanged(int current)
         {
             Refresh(current, _health.MaxValue);

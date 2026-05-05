@@ -37,30 +37,16 @@ namespace Gameplay.AI
         [Header("References")]
         public PerceptionSystem perception;
         public HealthComponent  healthComponent;
+        public Transform        playerTransform;
         public Rigidbody        rb;
 
         [Header("AI Settings")]
         public Team team;
 
         // =========================================
-        // TARGET SETTINGS
-        // Set enemyLayer to the layer your enemies
-        // are on. Allies will auto-target enemies,
-        // enemies will auto-target the player.
-        // =========================================
-        [Header("Targeting")]
-        public Transform playerTransform;
-        public LayerMask enemyLayer;
-
-        // =========================================
         // STATE FACTORY
         // =========================================
         protected IAIStateFactory StateFactory;
-
-        // =========================================
-        // GLOBAL REGISTRY
-        // =========================================
-        public static Dictionary<Transform, StateContext> Registry = new();
 
         // =========================================
         // UNITY LIFECYCLE
@@ -99,14 +85,6 @@ namespace Gameplay.AI
         // =========================================
         private void CreateContext()
         {
-            // =========================================
-            // TARGET SELECTION
-            // Enemies target the player directly.
-            // Allies scan for the nearest enemy
-            // using the enemyLayer mask.
-            // =========================================
-            Transform initialTarget = ResolveInitialTarget();
-
             _context = new StateContext
             {
                 Input    = new InputState(),
@@ -120,7 +98,7 @@ namespace Gameplay.AI
                 PerceptionContext = new Gameplay.AI.Perception.PerceptionContext
                 {
                     State          = new PerceptionState(),
-                    Target         = initialTarget,
+                    Target         = playerTransform,
                     VisibleTargets = new List<Transform>()
                 },
 
@@ -132,40 +110,10 @@ namespace Gameplay.AI
             };
         }
 
-        private Transform ResolveInitialTarget()
-        {
-            // Enemies always target the player
-            if (team == Team.Enemy)
-                return playerTransform;
-
-            // Allies scan for the nearest enemy on the enemy layer
-            if (team == Team.Ally && enemyLayer != 0)
-            {
-                var hits = Physics.OverlapSphere(transform.position, 100f, enemyLayer);
-
-                float     bestDist   = float.MaxValue;
-                Transform bestTarget = null;
-
-                foreach (var hit in hits)
-                {
-                    float dist = Vector3.Distance(transform.position, hit.transform.position);
-                    if (dist < bestDist)
-                    {
-                        bestDist   = dist;
-                        bestTarget = hit.transform;
-                    }
-                }
-
-                // Fall back to player if no enemies found yet
-                return bestTarget != null ? bestTarget : playerTransform;
-            }
-
-            return playerTransform;
-        }
-
         private void RegisterSelf()
         {
-            Registry[transform] = _context;
+            // Use AIAgentRegistry service instead of static Dictionary
+            ServiceLocator.Get<AIAgentRegistry>()?.Register(transform, _context);
         }
 
         private void BindSystems()
@@ -198,9 +146,7 @@ namespace Gameplay.AI
             if (perception != null)
             {
                 perception.context = _context;
-
-                // Perception target matches initial target
-                perception.target = _context.PerceptionContext.Target;
+                perception.target  = playerTransform;
             }
         }
 
@@ -213,9 +159,6 @@ namespace Gameplay.AI
             healthComponent.OnDeath += OnDeath;
         }
 
-        // =========================================
-        // STATE MACHINE
-        // =========================================
         private void CreateStateMachine()
         {
             if (StateFactory == null)
@@ -227,14 +170,10 @@ namespace Gameplay.AI
 
         protected virtual IAIStateFactory CreateFactory()
         {
-            // Use component on this GameObject if present —
-            // lets you tune values in the Inspector per agent
             var factory = GetComponent<CombatAIStateFactory>();
             if (factory != null)
                 return factory;
 
-            // Fallback — CombatAIStateFactory is a MonoBehaviour so
-            // we cannot use new. Return a default inline factory instead.
             return new DefaultCombatFactory();
         }
 
@@ -278,7 +217,8 @@ namespace Gameplay.AI
         // =========================================
         private void Cleanup()
         {
-            Registry.Remove(transform);
+            // Unregister from AIAgentRegistry instead of static Dictionary
+            ServiceLocator.Get<AIAgentRegistry>()?.Unregister(transform);
 
             ServiceLocator.Get<AIGroupManager>()?.Unregister(_context);
             ServiceLocator.Get<SquadSystem>()?.Unregister(_context);
@@ -310,12 +250,11 @@ namespace Gameplay.AI
             _context.WasHit       = true;
             _context.HitDirection = (transform.position - hitPoint).normalized;
         }
+
         // =========================================
         // DEFAULT COMBAT FACTORY
-        // Pure C# fallback — used when no
-        // CombatAIStateFactory component is present.
-        // Add CombatAIStateFactory as a component
-        // to get Inspector-tunable values instead.
+        // Pure C# fallback when no
+        // CombatAIStateFactory component is present
         // =========================================
         private class DefaultCombatFactory : IAIStateFactory
         {

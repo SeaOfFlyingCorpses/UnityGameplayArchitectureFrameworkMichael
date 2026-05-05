@@ -5,6 +5,7 @@ using UnityEngine;
 using Framework.AI.Systems;
 using Framework.StateMachine;
 using Gameplay.AI;
+using Framework.Core;
 
 namespace Gameplay.AI.Threat
 {
@@ -32,7 +33,8 @@ namespace Gameplay.AI.Threat
                 if (t == null) continue;
 
                 // skip friendly targets
-                if (AIController.Registry.TryGetValue(t, out var otherCtx))
+                var registry = ServiceLocator.Get<AIAgentRegistry>();
+                if (registry != null && registry.TryGetContext(t, out var otherCtx))
                 {
                     if (otherCtx != null && !TeamRelationship.IsHostile(selfTeam, otherCtx.Team))
                         continue;

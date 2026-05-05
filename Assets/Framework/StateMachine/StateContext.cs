@@ -22,7 +22,7 @@ namespace Framework.StateMachine
         public InputState    Input;
         public ICommandQueue Commands;   // interface — not concrete CommandQueue
 
-        public Health          HealthData;
+        public IHealth         HealthData;   // interface — swap any implementation
         public HealthComponent HealthComp;
         public Transform       Self;
 

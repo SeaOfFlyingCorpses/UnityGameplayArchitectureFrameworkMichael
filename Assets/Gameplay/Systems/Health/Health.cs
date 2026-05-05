@@ -1,50 +1,49 @@
 using System;
-using UnityEngine;
-using Framework.Events;
-using Framework.Events.Events.Gameplay;
 
 namespace Gameplay.Systems.Health
 {
-    public class Health
+    public class Health : IHealth
     {
-        public int Value { get; private set; }
-        public int MaxValue { get; private set; }
-        public bool IsDead { get; private set; }
+        public int  Value    { get; private set; }
+        public int  MaxValue { get; private set; }
+        public bool IsDead   => Value <= 0;
 
         public event Action<int> OnChanged;
-        public event Action OnDeath;
+        public event Action      OnDeath;
 
-        public Health(int maxValue = 100)
+        public Health(int maxValue)
         {
             MaxValue = maxValue;
-            Value = maxValue;
-        }
-
-        public void Set(int value)
-        {
-            if (IsDead) return;
-
-            Value = Mathf.Clamp(value, 0, MaxValue);
-
-            OnChanged?.Invoke(Value);
-            EventBus.Publish(new HealthChangedEvent(Value));
-
-            if (Value <= 0)
-                Die();
+            Value    = maxValue;
         }
 
         public void Damage(int amount)
         {
-            Set(Value - amount);
+            if (IsDead)
+                return;
+
+            Value = System.Math.Max(0, Value - amount);
+
+            OnChanged?.Invoke(Value);
+
+            if (IsDead)
+                OnDeath?.Invoke();
         }
 
-        private void Die()
+        public void Heal(int amount)
         {
-            if (IsDead) return;
+            if (IsDead)
+                return;
 
-            IsDead = true;
+            Value = System.Math.Min(MaxValue, Value + amount);
 
-            OnDeath?.Invoke();
+            OnChanged?.Invoke(Value);
+        }
+
+        public void Reset()
+        {
+            Value = MaxValue;
+            OnChanged?.Invoke(Value);
         }
     }
 }

@@ -1,15 +1,20 @@
 using Framework.Commands;
-using UnityEngine;
 using Gameplay.Systems.Health;
 
 namespace Gameplay.Systems.Health.Commands
 {
+    // =========================================
+    // DamageCommand
+    // Deals damage to any IHealth implementation.
+    // Works with Health, ShieldedHealth,
+    // RegenHealth, or any future type.
+    // =========================================
     public class DamageCommand : ICommand
     {
-        private readonly Health _health;
-        private readonly int _amount;
+        private readonly IHealth _health;
+        private readonly int     _amount;
 
-        public DamageCommand(Health health, int amount)
+        public DamageCommand(IHealth health, int amount)
         {
             _health = health;
             _amount = amount;
@@ -17,7 +22,7 @@ namespace Gameplay.Systems.Health.Commands
 
         public void Execute()
         {
-            _health.Damage(_amount);
+            _health?.Damage(_amount);
         }
     }
 }
