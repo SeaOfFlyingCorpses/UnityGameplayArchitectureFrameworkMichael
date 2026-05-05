@@ -22,13 +22,13 @@ namespace Framework.StateMachine.States
             ));
         }
 
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
+
         public void Enter(StateContext context)
         {
             _timer = 0f;
-
             context.AnimationRequest = new AnimationRequest(AnimationType.Hit);
-
-            context.Commands.Clear(); // will fix below
+            context.Commands.Clear();
         }
 
         public void Update(StateContext context)

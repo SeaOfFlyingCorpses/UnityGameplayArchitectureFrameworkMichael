@@ -12,16 +12,11 @@ namespace Framework.StateMachine.States
 
         public void Init(IState idleState, IState attackState)
         {
-            _transitions.Add(new Transition(
-                new MoveReleasedCondition(),
-                idleState
-            ));
-
-            _transitions.Add(new Transition(
-                new AttackPressedCondition(),
-                attackState
-            ));
+            _transitions.Add(new Transition(new MoveReleasedCondition(), idleState));
+            _transitions.Add(new Transition(new AttackPressedCondition(), attackState));
         }
+
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
 
         public void Enter(StateContext context)
         {
@@ -35,14 +30,7 @@ namespace Framework.StateMachine.States
             if (input.sqrMagnitude > 0.01f)
             {
                 Vector3 moveDir = new Vector3(input.x, 0f, input.y);
-
-                context.Commands.Enqueue(
-                    new MoveCommand(
-                        context.Self,
-                        moveDir.normalized,
-                        5f
-                    )
-                );
+                context.Commands.Enqueue(new MoveCommand(context.Self, moveDir.normalized, 5f));
             }
         }
 

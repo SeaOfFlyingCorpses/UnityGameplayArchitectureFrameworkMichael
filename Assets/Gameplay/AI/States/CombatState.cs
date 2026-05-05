@@ -38,6 +38,11 @@ namespace Framework.StateMachine.States
             _config = config ?? new CombatStateConfig();
         }
 
+        // =========================================
+        // AddTransition — required by IState
+        // =========================================
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
+
         public void Enter(StateContext context)
         {
             _strafeTimer   = Random.Range(0f, _config.StrafeDecideInterval);
@@ -46,9 +51,6 @@ namespace Framework.StateMachine.States
 
         public void Update(StateContext context)
         {
-            // ----------------------------
-            // TARGET VALIDATION
-            // ----------------------------
             var target = context.Target;
 
             if (target == null)
@@ -68,7 +70,6 @@ namespace Framework.StateMachine.States
                 context.Target = target;
             }
 
-            // team check via AIAgentRegistry
             var registry = ServiceLocator.Get<AIAgentRegistry>();
             if (registry != null && registry.TryGetContext(target, out var otherCtx))
             {
@@ -76,20 +77,13 @@ namespace Framework.StateMachine.States
                     return;
             }
 
-            // resolve target health
             Gameplay.Systems.Health.HealthComponent targetHealth = null;
             if (target.TryGetComponent(out Targetable targetable))
                 targetHealth = targetable.Health;
 
-            // ----------------------------
-            // GLOBAL MODIFIERS
-            // ----------------------------
             float intensity   = context.DirectorIntensity;
             float suppression = 1f - context.Suppression;
 
-            // ----------------------------
-            // FEAR BEHAVIOR
-            // ----------------------------
             if (context.Fear > 0.8f)
             {
                 var away = (context.Self.position - target.position).normalized;
@@ -97,9 +91,6 @@ namespace Framework.StateMachine.States
                 return;
             }
 
-            // ----------------------------
-            // MORALE RETREAT
-            // ----------------------------
             if (context.Morale < 0.3f)
             {
                 context.Commands.Enqueue(
@@ -107,9 +98,6 @@ namespace Framework.StateMachine.States
                 return;
             }
 
-            // ----------------------------
-            // SQUAD RETREAT
-            // ----------------------------
             if (context.SquadStrategy == SquadStrategy.Retreat)
             {
                 var away = (context.Self.position - target.position).normalized;
@@ -117,9 +105,6 @@ namespace Framework.StateMachine.States
                 return;
             }
 
-            // ----------------------------
-            // STRAFE DECISION
-            // ----------------------------
             _strafeTimer += Time.deltaTime;
             if (_strafeTimer >= _config.StrafeDecideInterval)
             {
@@ -128,9 +113,6 @@ namespace Framework.StateMachine.States
                 _isStrafeFrame = Random.value < _config.StrafeChance;
             }
 
-            // ----------------------------
-            // MOVEMENT
-            // ----------------------------
             var   dir      = target.position - context.Self.position;
             float distance = dir.magnitude;
             float speed    = 3.5f * suppression * Mathf.Lerp(0.8f, 1.5f, intensity);
@@ -153,9 +135,6 @@ namespace Framework.StateMachine.States
                 context.Commands.Enqueue(new MoveCommand(context.Self, forward, speed));
             }
 
-            // ----------------------------
-            // ATTACK
-            // ----------------------------
             if (distance <= _config.AttackRange &&
                 Time.time > _lastAttackTime + _config.AttackCooldown + context.Suppression &&
                 targetHealth != null)

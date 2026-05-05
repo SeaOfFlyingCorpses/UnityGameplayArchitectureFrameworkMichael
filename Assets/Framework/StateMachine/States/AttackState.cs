@@ -21,15 +21,13 @@ namespace Framework.StateMachine.States
             ));
         }
 
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
+
         public void Enter(StateContext context)
         {
             _timer = 0f;
-
             context.AnimationRequest = new AnimationRequest(AnimationType.Attack);
-
-            context.Commands.Enqueue(
-                new DamageCommand(context.HealthData, 10)
-            );
+            context.Commands.Enqueue(new DamageCommand(context.HealthData, 10));
         }
 
         public void Update(StateContext context)

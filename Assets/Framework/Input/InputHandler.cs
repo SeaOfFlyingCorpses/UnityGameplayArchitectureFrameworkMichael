@@ -23,7 +23,10 @@ namespace Framework.Input
             _input.Player.Move.performed   += OnMove;
             _input.Player.Move.canceled    += OnMoveCanceled;
             _input.Camera.Look.performed   += OnLook;
-            _input.Camera.Look.canceled    += OnLookCanceled;
+            // NOTE: No canceled handler for Look —
+            // Mouse delta is naturally zero when not moving.
+            // Zeroing on canceled kills the value before
+            // PlayerLook and FPSCameraMode can read it.
         }
 
         private void OnDisable()
@@ -32,7 +35,6 @@ namespace Framework.Input
             _input.Player.Move.performed   -= OnMove;
             _input.Player.Move.canceled    -= OnMoveCanceled;
             _input.Camera.Look.performed   -= OnLook;
-            _input.Camera.Look.canceled    -= OnLookCanceled;
 
             _input.Disable();
         }
@@ -57,15 +59,14 @@ namespace Framework.Input
             State.Look = ctx.ReadValue<Vector2>();
         }
 
-        private void OnLookCanceled(InputAction.CallbackContext ctx)
-        {
-            State.Look = Vector2.zero;
-        }
-
         private void LateUpdate()
         {
             // Reset one-frame inputs after everything has read them
             State.AttackPressed = false;
+
+            // Reset Look each frame — it is repopulated by OnLook
+            // only when the mouse actually moves
+            State.Look = Vector2.zero;
         }
     }
 }

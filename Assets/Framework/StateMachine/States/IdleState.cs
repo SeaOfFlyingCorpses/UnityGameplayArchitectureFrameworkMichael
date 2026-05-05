@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Framework.AI.Alert;
 using Framework.Animation;
 using Framework.StateMachine.Conditions;
 
@@ -9,19 +8,13 @@ namespace Framework.StateMachine.States
     {
         private readonly List<Transition> _transitions = new();
 
-        // link states after creation
         public void Init(IState moveState, IState attackState)
         {
-            _transitions.Add(new Transition(
-                new MovePressedCondition(),
-                moveState
-            ));
-
-            _transitions.Add(new Transition(
-                new AttackPressedCondition(),
-                attackState
-            ));
+            _transitions.Add(new Transition(new MovePressedCondition(), moveState));
+            _transitions.Add(new Transition(new AttackPressedCondition(), attackState));
         }
+
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
 
         public void Enter(StateContext context)
         {
@@ -30,8 +23,7 @@ namespace Framework.StateMachine.States
 
         public void Update(StateContext context)
         {
-            context.AnimationRequest =
-                new AnimationRequest(AnimationType.Idle);
+            context.AnimationRequest = new AnimationRequest(AnimationType.Idle);
         }
 
         public void Exit() { }

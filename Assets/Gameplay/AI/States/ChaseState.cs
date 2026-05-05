@@ -6,12 +6,6 @@ using UnityEngine;
 
 namespace Gameplay.AI.States
 {
-    // =========================================
-    // ChaseState
-    // Framework state — depends only on StateContext.
-    // Reads alert level and memory through context.
-    // No direct Gameplay system imports.
-    // =========================================
     public class ChaseState : IState
     {
         private readonly List<Transition> _transitions = new();
@@ -24,6 +18,8 @@ namespace Gameplay.AI.States
             _attackState = attackState;
             _searchState = searchState;
         }
+
+        public void AddTransition(Transition transition) => _transitions.Add(transition);
 
         public void Enter(StateContext context)
         {
@@ -38,7 +34,6 @@ namespace Gameplay.AI.States
             var   direction = context.Target.position - context.Self.position;
             float distance  = direction.magnitude;
 
-            // do nothing while calm — alert level read through context
             if (context.AlertLevel == Framework.AI.Alert.AlertLevel.Calm)
                 return;
 
@@ -50,7 +45,6 @@ namespace Gameplay.AI.States
             if (context.AlertLevel == Framework.AI.Alert.AlertLevel.Combat)
                 speed = 5.5f;
 
-            // close enough to attack
             if (distance <= 2f)
             {
                 context.AnimationRequest = new AnimationRequest(AnimationType.Attack);
@@ -58,11 +52,9 @@ namespace Gameplay.AI.States
             }
 
             context.Commands.Enqueue(
-                new MoveCommand(context.Self, direction.normalized, speed)
-            );
+                new MoveCommand(context.Self, direction.normalized, speed));
 
-            // memory write — safe null check
-            if (context.Memory != null && context.Target != null)
+            if (context.Memory != null)
                 context.Memory.Remember(context.Target.position, Time.time);
 
             context.AnimationRequest = new AnimationRequest(AnimationType.Move);

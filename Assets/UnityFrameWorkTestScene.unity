@@ -331,6 +331,7 @@ GameObject:
   - component: {fileID: 161245800}
   - component: {fileID: 161245789}
   - component: {fileID: 161245801}
+  - component: {fileID: 161245802}
   m_Layer: 8
   m_Name: Cube (1)
   m_TagString: Untagged
@@ -403,7 +404,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 9
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &161245794
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -417,10 +432,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 640
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &161245795
@@ -437,12 +457,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 161245794}
   healthComponent: {fileID: 161245793}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 161245789}
   team: 1
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &161245796
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -550,6 +567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: Enemy
 --- !u!114 &161245801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -568,6 +586,18 @@ MonoBehaviour:
   strafeChance: 0.4
   strafeDecideInterval: 2.5
   strafeSpeedMultiplier: 0.7
+--- !u!114 &161245802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161245788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8659d5905e76ccb40a6906109a27e4d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthDebugDisplay
 --- !u!1 &222093942
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,7 +886,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &392092432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -870,10 +914,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 640
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &392092433
@@ -890,12 +939,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 392092432}
   healthComponent: {fileID: 392092431}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 392092427}
   team: 1
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &392092434
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1003,6 +1049,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: Enemy
 --- !u!114 &392092439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1260,12 +1307,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60f01c15ce0718048b5ec31e11ad151d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Camera.CameraBootstrap
-  mode: 0
+  mode: 1
   controller: {fileID: 710364019}
-  playerTarget: {fileID: 1443509476}
+  playerTarget: {fileID: 2080381442}
   inputHandler: {fileID: 1443509483}
-  cinematicPointA: {fileID: 0}
-  cinematicPointB: {fileID: 0}
+  fixedPosition: {x: 0, y: 0, z: 0}
+  fixedLookAt: {fileID: 0}
+  cinematicPointA: {fileID: 161245799}
+  cinematicPointB: {fileID: 392092437}
   priority: 1
   blendTime: 0
 --- !u!1 &821253998
@@ -1360,7 +1409,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &821254004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1374,10 +1437,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 640
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &821254005
@@ -1394,12 +1462,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 821254004}
   healthComponent: {fileID: 821254003}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 821253999}
   team: 1
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &821254006
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1507,6 +1572,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: Enemy
 --- !u!114 &821254011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1819,7 +1885,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &938295205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1833,10 +1913,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 640
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &938295206
@@ -1853,12 +1938,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 938295205}
   healthComponent: {fileID: 938295204}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 938295200}
   team: 1
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &938295207
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1966,6 +2048,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: Enemy
 --- !u!114 &938295212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2062,7 +2145,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &1011893231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2076,10 +2173,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 256
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &1011893232
@@ -2096,12 +2198,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 1011893231}
   healthComponent: {fileID: 1011893230}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 1011893228}
   team: 2
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &1011893233
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2209,6 +2308,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: 
 --- !u!114 &1011893238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2450,7 +2550,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &1374604447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2464,10 +2578,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 256
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &1374604448
@@ -2484,12 +2603,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 1374604447}
   healthComponent: {fileID: 1374604446}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 1374604444}
   team: 2
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &1374604449
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2610,6 +2726,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: 
 --- !u!1 &1443509475
 GameObject:
   m_ObjectHideFlags: 0
@@ -2625,6 +2742,7 @@ GameObject:
   - component: {fileID: 1443509484}
   - component: {fileID: 1443509483}
   - component: {fileID: 1443509482}
+  - component: {fileID: 1443509488}
   - component: {fileID: 1443509480}
   - component: {fileID: 1443509477}
   m_Layer: 7
@@ -2703,7 +2821,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &1443509483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2811,6 +2943,23 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1443509475}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1443509488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443509475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42d611be0e7f53e4883b350054952ad9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Player.PlayerLook
+  head: {fileID: 2080381442}
+  inputHandler: {fileID: 1443509483}
+  sensitivity: 10
+  pitchMin: -80
+  pitchMax: 80
 --- !u!1 &1507381795
 GameObject:
   m_ObjectHideFlags: 0
@@ -3633,6 +3782,8 @@ GameObject:
   - component: {fileID: 1973347103}
   - component: {fileID: 1973347102}
   - component: {fileID: 1973347101}
+  - component: {fileID: 1973347104}
+  - component: {fileID: 1973347105}
   m_Layer: 0
   m_Name: _GameSystems
   m_TagString: Untagged
@@ -3693,6 +3844,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1d09ce4cb282b347ab026a178061e92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Director.AIDirector
+  enemyPoolKey: Enemy
+  spawnPoints: []
+--- !u!114 &1973347104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b52304d516d77ab4697c99c9494d8b02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIAgentRegistry
+--- !u!114 &1973347105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19d507fe495bc554fb79e316f6526ed4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Framework.Core.PoolRegistry
 --- !u!1 &2000010419
 GameObject:
   m_ObjectHideFlags: 0
@@ -3888,7 +4065,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1d5e186b4a8a94bbb1485c6fb4f2ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.HealthComponent
+  healthType: 0
   maxHealth: 100
+  shieldAmount: 50
+  regenRate: 5
+  regenDelay: 3
+  armourFlat: 3
+  armourPct: 0.2
+  segments: 5
+  overshieldDecayRate: 10
+  fireResistance: 1
+  iceResistance: 1
+  lightningResistance: 1
+  poisonResistance: 1
+  holyResistance: 1
+  darkResistance: 1
 --- !u!114 &2054714837
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3902,10 +4093,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.Perception.PerceptionSystem
   target: {fileID: 0}
+  sensorType: 0
   visionRadius: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 256
+  fieldOfView: 90
+  occlusionLayer:
+    serializedVersion: 2
+    m_Bits: 0
   viewRange: 10
   attackRange: 2
 --- !u!114 &2054714838
@@ -3922,12 +4118,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 2054714837}
   healthComponent: {fileID: 2054714836}
+  playerTransform: {fileID: 1443509476}
   rb: {fileID: 2054714834}
   team: 2
-  playerTransform: {fileID: 1443509476}
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!65 &2054714839
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4035,6 +4228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.Health.DeathSystem
   destroyDelay: 2
+  poolKey: 
 --- !u!114 &2054714844
 MonoBehaviour:
   m_ObjectHideFlags: 0

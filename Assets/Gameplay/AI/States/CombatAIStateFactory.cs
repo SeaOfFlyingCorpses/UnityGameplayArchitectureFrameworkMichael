@@ -1,6 +1,7 @@
 using UnityEngine;
 using Framework.StateMachine;
 using Framework.StateMachine.States;
+using Framework.StateMachine.Conditions;
 
 namespace Gameplay.AI.States
 {
@@ -13,7 +14,7 @@ namespace Gameplay.AI.States
         [Tooltip("Distance the agent tries to maintain from its target")]
         public float idealDistance  = 5.0f;
 
-        [Tooltip("Distance at which the agent can land an attack — should be >= idealDistance")]
+        [Tooltip("Distance at which the agent can land an attack")]
         public float attackRange    = 5.5f;
 
         [Header("Strafe Tuning")]
@@ -40,13 +41,65 @@ namespace Gameplay.AI.States
                 StrafeSpeedMultiplier = strafeSpeedMultiplier
             };
 
-            var combat  = new CombatState(config);
+            // =========================================
+            // CREATE STATES
+            // =========================================
             var idle    = new IdleState();
-            var search  = new SearchState(idle);
-            var chase   = new ChaseState(combat, search);
+            var move    = new MoveState();
+            var combat  = new CombatState(config);
+            var chase   = new ChaseState(combat, idle);
             var stagger = new StaggerState(combat);
 
-            return combat;
+            // =========================================
+            // WIRE TRANSITIONS
+            //
+            // IdleState
+            //   → ChaseState  when target spotted
+            //
+            // ChaseState
+            //   → CombatState when in attack range
+            //   → IdleState   when target fully lost
+            //
+            // CombatState
+            //   → ChaseState  when target moves out of range
+            //   → StaggerState when hit
+            //
+            // StaggerState
+            //   → CombatState when stagger finishes
+            // =========================================
+
+            idle.AddTransition(new Transition(
+                new CanSeeTargetCondition(),
+                chase
+            ));
+
+            chase.AddTransition(new Transition(
+                new IsInAttackRangeCondition(),
+                combat
+            ));
+
+            chase.AddTransition(new Transition(
+                new TargetLostCondition(),
+                idle
+            ));
+
+            combat.AddTransition(new Transition(
+                new TargetLostCondition(),
+                chase
+            ));
+
+            combat.AddTransition(new Transition(
+                new WasHitCondition(),
+                stagger
+            ));
+
+            stagger.AddTransition(new Transition(
+                new StaggerFinishedCondition(stagger),
+                combat
+            ));
+
+            // Start in idle — transitions to chase when target spotted
+            return idle;
         }
     }
 }

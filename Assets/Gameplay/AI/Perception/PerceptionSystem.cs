@@ -6,19 +6,85 @@ namespace Gameplay.AI.Perception
 {
     public class PerceptionSystem : MonoBehaviour
     {
-        public Transform target;
+        public enum SensorType
+        {
+            OverlapSphere,  // default — detects everything in radius
+            Cone,           // FOV cone in front of agent
+            Raycast,        // line of sight through walls
+            Trigger,        // Unity trigger collider based
+        }
+
+        public Transform   target;
         public StateContext context;
 
-        public float visionRadius = 10f;
+        [Header("Sensor Type")]
+        public SensorType sensorType = SensorType.OverlapSphere;
+
+        [Header("Base Settings")]
+        public float     visionRadius = 10f;
         public LayerMask targetLayer;
 
-        public float viewRange = 10f;
+        [Header("Cone / Raycast Settings")]
+        [Tooltip("Total field of view angle in degrees (Cone and Raycast only)")]
+        public float fieldOfView = 90f;
+
+        [Header("Raycast Settings")]
+        [Tooltip("Layers that block line of sight (walls, cover)")]
+        public LayerMask occlusionLayer;
+
+        [Header("Ranges")]
+        public float viewRange   = 10f;
         public float attackRange = 2f;
 
-        private readonly List<Transform> _tempTargets = new();
+        private IPerceptionSensor      _sensor;
+        private TriggerSensorCollector _triggerCollector;
+
+        private void Awake()
+        {
+            _sensor = BuildSensor();
+        }
 
         // =========================================
-        // 🔥 PUBLIC ENTRY POINT (USED BY AIController)
+        // BUILD SENSOR FROM INSPECTOR SELECTION
+        // =========================================
+        private IPerceptionSensor BuildSensor()
+        {
+            switch (sensorType)
+            {
+                case SensorType.Cone:
+                    return new ConeSensor(transform, visionRadius, fieldOfView, targetLayer);
+
+                case SensorType.Raycast:
+                    return new RaycastSensor(
+                        transform, visionRadius, targetLayer, occlusionLayer, fieldOfView);
+
+                case SensorType.Trigger:
+                    _triggerCollector = GetComponent<TriggerSensorCollector>();
+                    if (_triggerCollector == null)
+                    {
+                        Debug.LogWarning(
+                            $"[PerceptionSystem] {gameObject.name} — " +
+                            $"SensorType.Trigger requires a TriggerSensorCollector component. " +
+                            $"Falling back to OverlapSphere.");
+                        return new OverlapSphereSensor(visionRadius, targetLayer);
+                    }
+                    return new TriggerSensor(_triggerCollector.InsideTargets);
+
+                default:
+                    return new OverlapSphereSensor(visionRadius, targetLayer);
+            }
+        }
+
+        // =========================================
+        // SWAP SENSOR AT RUNTIME
+        // =========================================
+        public void SetSensor(IPerceptionSensor sensor)
+        {
+            _sensor = sensor;
+        }
+
+        // =========================================
+        // PUBLIC ENTRY POINT
         // =========================================
         public void Tick()
         {
@@ -29,24 +95,12 @@ namespace Gameplay.AI.Perception
             UpdatePerceptionState();
         }
 
-        // =========================================
-        // SENSOR LAYER (PHYSICS ONLY)
-        // =========================================
         private void UpdateVision()
         {
-            _tempTargets.Clear();
+            if (_sensor == null)
+                return;
 
-            var hits = Physics.OverlapSphere(
-                context.Self.position,
-                visionRadius,
-                targetLayer
-            );
-
-            for (int i = 0; i < hits.Length; i++)
-            {
-                if (hits[i] != null)
-                    _tempTargets.Add(hits[i].transform);
-            }
+            var detected = _sensor.Sense(context.Self.position);
 
             var perceptionCtx = context.PerceptionContext;
 
@@ -54,21 +108,17 @@ namespace Gameplay.AI.Perception
                 perceptionCtx.VisibleTargets = new List<Transform>();
 
             perceptionCtx.VisibleTargets.Clear();
-            perceptionCtx.VisibleTargets.AddRange(_tempTargets);
+            perceptionCtx.VisibleTargets.AddRange(detected);
         }
 
-        // =========================================
-        // BRAIN STATE UPDATE
-        // =========================================
         private void UpdatePerceptionState()
         {
             var perceptionCtx = context.PerceptionContext;
-            var state = perceptionCtx.State;
+            var state         = perceptionCtx.State;
 
             if (state == null)
                 return;
 
-            // ✅ FIX: use PerceptionContext ONLY
             state.CanSeeTarget =
                 perceptionCtx.VisibleTargets != null &&
                 perceptionCtx.VisibleTargets.Count > 0;
@@ -80,17 +130,16 @@ namespace Gameplay.AI.Perception
                     context.Target.position
                 );
 
-                state.DistanceToTarget = distance;
+                state.DistanceToTarget      = distance;
                 state.IsTargetInAttackRange = distance <= attackRange;
 
-                // memory hook
                 if (state.CanSeeTarget)
                     state.LastSeenTime = Time.time;
             }
             else
             {
                 state.IsTargetInAttackRange = false;
-                state.DistanceToTarget = float.MaxValue;
+                state.DistanceToTarget      = float.MaxValue;
             }
         }
     }

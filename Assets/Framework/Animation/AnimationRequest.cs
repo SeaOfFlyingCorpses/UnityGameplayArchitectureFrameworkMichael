@@ -5,7 +5,10 @@ namespace Framework.Animation
         Idle,
         Move,
         Attack,
-        Hit
+        Hit,
+        Death,    // plays death animation, sets IsDead bool
+        Dodge,    // plays dodge/roll animation
+        Stagger   // plays hit stagger animation
     }
 
     public struct AnimationRequest

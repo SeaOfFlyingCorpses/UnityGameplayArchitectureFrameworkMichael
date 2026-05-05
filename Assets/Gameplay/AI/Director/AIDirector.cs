@@ -5,12 +5,14 @@ namespace Gameplay.AI.Director
 {
     public class AIDirector : MonoBehaviour
     {
-        // =========================================
-        // No more "public static Instance"
-        // Retrieve via: ServiceLocator.Get<AIDirector>()
-        // =========================================
-
         public AIDirectorState State = new AIDirectorState();
+
+        [Header("Spawning")]
+        [Tooltip("Pool key to spawn enemies from. Must match a key in PoolRegistry.")]
+        public string enemyPoolKey = "Enemy";
+
+        [Tooltip("Spawn points — enemies appear at one of these randomly.")]
+        public Transform[] spawnPoints;
 
         private void Awake()
         {
@@ -52,18 +54,43 @@ namespace Gameplay.AI.Director
             if (State.ActiveEnemies >= State.MaxEnemies)
                 return;
 
-            int spawnCount = Mathf.RoundToInt(
-                Mathf.Lerp(1, 5, State.Intensity)
-            );
-
-            SpawnEnemies(spawnCount);
+            int count = Mathf.RoundToInt(Mathf.Lerp(1, 5, State.Intensity));
+            SpawnEnemies(count);
         }
 
         private void SpawnEnemies(int count)
         {
-            // hook into your spawn system later
-            Debug.Log($"Spawn {count} enemies");
-            State.ActiveEnemies += count;
+            var registry = ServiceLocator.Get<PoolRegistry>();
+
+            if (registry == null || !registry.HasPool(enemyPoolKey))
+            {
+                // Pool not set up yet — log once, don't spam
+                return;
+            }
+
+            if (spawnPoints == null || spawnPoints.Length == 0)
+            {
+                Debug.LogWarning("[AIDirector] No spawn points assigned.");
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                if (State.ActiveEnemies >= State.MaxEnemies)
+                    break;
+
+                // Pick a random spawn point
+                var point = spawnPoints[Random.Range(0, spawnPoints.Length)];
+
+                var obj = registry.Get(
+                    enemyPoolKey,
+                    point.position,
+                    point.rotation
+                );
+
+                if (obj != null)
+                    State.ActiveEnemies++;
+            }
         }
     }
 }
