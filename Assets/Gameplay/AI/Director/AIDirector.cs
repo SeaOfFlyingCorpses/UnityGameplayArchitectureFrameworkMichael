@@ -47,6 +47,10 @@ namespace Gameplay.AI.Director
 
         private void UpdateIntensity()
         {
+            // Start at 0.3 so first spawn delay is ~7s not 10s
+            if (State.Intensity < 0.3f)
+                State.Intensity = 0.3f;
+
             State.Intensity += Time.deltaTime * 0.05f;
             State.Intensity  = Mathf.Clamp01(State.Intensity);
         }

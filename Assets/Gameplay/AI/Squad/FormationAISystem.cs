@@ -11,16 +11,23 @@ namespace Gameplay.AI.Squad
     {
         public AISystemCategory Category => AISystemCategory.Squad;
 
-        private const float MoveSpeed        = 3.5f;
-        private const float ArrivalThreshold = 0.5f;
+        // Tight formation — used during patrol/search
+        private const float TightArrivalThreshold = 0.5f;
+        private const float TightMoveSpeed        = 3.5f;
+
+        // Loose formation — used during combat/engage
+        // Agents only correct if very far from slot
+        private const float LooseArrivalThreshold = 4f;
+        private const float LooseMoveSpeed        = 2f;
 
         public bool ShouldRun(StateContext context)
         {
-            var squad = context.SquadContext as SquadContext;
-            if (squad?.TypedFormation == null) return false;
+            // Skip if no squad or no formation
+            if (context.SquadContext?.Formation == null)
+                return false;
 
-            if (context.SquadStrategy == SquadStrategy.Engage ||
-                context.SquadStrategy == SquadStrategy.Retreat)
+            // Skip during retreat — agents flee freely
+            if (context.SquadStrategy == SquadStrategy.Retreat)
                 return false;
 
             return true;
@@ -31,8 +38,22 @@ namespace Gameplay.AI.Squad
             var squad     = context.SquadContext as SquadContext;
             var formation = squad?.TypedFormation;
 
-            if (formation?.Leader == null) return;
+            if (formation?.Leader == null)
+                return;
 
+            // Determine formation tightness by strategy
+            bool isEngaging =
+                context.SquadStrategy == SquadStrategy.Engage;
+
+            float arrivalThreshold = isEngaging
+                ? LooseArrivalThreshold
+                : TightArrivalThreshold;
+
+            float moveSpeed = isEngaging
+                ? LooseMoveSpeed
+                : TightMoveSpeed;
+
+            // Find this agent's index
             int index = -1;
             for (int i = 0; i < squad.Members.Count; i++)
             {
@@ -43,16 +64,26 @@ namespace Gameplay.AI.Squad
                 }
             }
 
-            if (index <= 0) return;
+            // Leader holds position — only followers move
+            if (index <= 0)
+                return;
 
             Vector3 offset         = FormationSystem.GetOffset(index, formation);
             Vector3 targetPosition = formation.Leader.position + offset;
             Vector3 toTarget       = targetPosition - context.Self.position;
 
-            if (toTarget.magnitude <= ArrivalThreshold) return;
+            // Skip if close enough
+            if (toTarget.magnitude <= arrivalThreshold)
+                return;
 
+            // During combat — only correct if very far off
+            // This lets agents fight freely but drift back gradually
             context.Commands.Enqueue(
-                new MoveCommand(context.Self, toTarget.normalized, MoveSpeed));
+                new MoveCommand(
+                    context.Self,
+                    toTarget.normalized,
+                    moveSpeed,
+                    context.Movement));
         }
     }
 }

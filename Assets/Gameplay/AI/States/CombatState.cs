@@ -9,8 +9,9 @@ using Gameplay.AI;
 using Gameplay.Combat;
 using Gameplay.AI.Threat;
 using Framework.Core;
+using Framework.StateMachine;
 
-namespace Framework.StateMachine.States
+namespace Gameplay.AI.States
 {
     public class CombatStateConfig
     {
@@ -88,21 +89,21 @@ namespace Framework.StateMachine.States
             if (context.Fear > 0.8f)
             {
                 var away = (context.Self.position - target.position).normalized;
-                context.Commands.Enqueue(new MoveCommand(context.Self, away, 6f * suppression));
+                context.Commands.Enqueue(new MoveCommand(context.Self, away, 6f * suppression, context.Movement));
                 return;
             }
 
             if (context.Morale < 0.3f)
             {
                 context.Commands.Enqueue(
-                    new MoveCommand(context.Self, -context.Self.forward, 3f * suppression));
+                    new MoveCommand(context.Self, -context.Self.forward, 3f * suppression, context.Movement));
                 return;
             }
 
             if (context.SquadStrategy == SquadStrategy.Retreat)
             {
                 var away = (context.Self.position - target.position).normalized;
-                context.Commands.Enqueue(new MoveCommand(context.Self, away, 5f * suppression));
+                context.Commands.Enqueue(new MoveCommand(context.Self, away, 5f * suppression, context.Movement));
                 return;
             }
 
@@ -123,30 +124,37 @@ namespace Framework.StateMachine.States
 
             if (distance < _config.IdealDistance - 0.5f)
             {
-                context.Commands.Enqueue(new MoveCommand(context.Self, -forward, speed));
+                context.Commands.Enqueue(new MoveCommand(context.Self, -forward, speed, context.Movement));
             }
             else if (distance <= _config.IdealDistance + 1f)
             {
                 if (_isStrafeFrame)
                     context.Commands.Enqueue(
-                        new MoveCommand(context.Self, strafe, speed * _config.StrafeSpeedMultiplier));
+                        new MoveCommand(context.Self, strafe, speed * _config.StrafeSpeedMultiplier, context.Movement));
             }
             else
             {
-                context.Commands.Enqueue(new MoveCommand(context.Self, forward, speed));
+                context.Commands.Enqueue(new MoveCommand(context.Self, forward, speed, context.Movement));
             }
 
             if (distance <= _config.AttackRange &&
                 Time.time > _lastAttackTime + _config.AttackCooldown + context.Suppression &&
                 targetHealth != null)
             {
-                context.Abilities?.Use("Attack", new AbilityContext
+                var abilityCtx = new Gameplay.Abilities.AbilityContext
                 {
                     Self         = context.Self,
                     Target       = target,
                     SourceHealth = context.HealthComp,
                     TargetHealth = targetHealth
-                });
+                };
+
+                var system = context.Abilities
+                    as Gameplay.Abilities.AbilitySystem;
+                bool fired = system?.UseBestAvailable(abilityCtx) ?? false;
+
+                if (!fired)
+                    context.Abilities?.Use("Attack", abilityCtx);
 
                 _lastAttackTime = Time.time;
             }

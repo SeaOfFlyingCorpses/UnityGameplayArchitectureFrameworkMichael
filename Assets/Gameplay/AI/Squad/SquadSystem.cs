@@ -1,17 +1,17 @@
 using UnityEngine;
 using Framework.StateMachine;
+using Framework.AI.Faction;
 using Framework.Core;
 
 namespace Gameplay.AI.Squad
 {
     public class SquadSystem : MonoBehaviour
     {
-        // =========================================
-        // No more "public static Instance"
-        // Retrieve via: ServiceLocator.Get<SquadSystem>()
-        // =========================================
+        public SquadContext EnemySquad  = new SquadContext();
+        public SquadContext AllySquad   = new SquadContext();
+        public SquadContext PlayerSquad = new SquadContext();
 
-        public SquadContext GlobalSquad = new SquadContext();
+        public SquadContext GlobalSquad => EnemySquad;
 
         private void Awake()
         {
@@ -23,64 +23,79 @@ namespace Gameplay.AI.Squad
             ServiceLocator.Unregister<SquadSystem>();
         }
 
-        // =========================================
-        // SELF-TICKING (Step 5a)
-        // SquadSystem now ticks itself once per frame
-        // via Unity's Update — exactly once, globally.
-        // SquadAISystem no longer calls Tick().
-        // =========================================
         private void Update()
         {
-            if (GlobalSquad.Leader == null)
-                return;
-
-            GlobalSquad.UpdateStrategy();
-            GlobalSquad.UpdateTarget();
-            GlobalSquad.UpdateMoralInfluence();
+            TickSquad(EnemySquad);
+            TickSquad(AllySquad);
+            TickSquad(PlayerSquad);
         }
 
-        // =========================================
-        // AGENT REGISTRATION — unchanged
-        // =========================================
+        private void TickSquad(SquadContext squad)
+        {
+            if (squad.Members.Count == 0) return;
+
+            // Clean up any destroyed members first
+            squad.Members.RemoveAll(m =>
+                m?.Context?.Self == null ||
+                !m.Context.Self.gameObject.activeInHierarchy == false &&
+                m.Context.Commands == null);
+
+            if (squad.Leader == null) return;
+
+            squad.UpdateStrategy();
+            squad.UpdateTarget();
+            squad.UpdateMoralInfluence();
+        }
+
         public void Register(StateContext context)
         {
-            if (context == null)
-                return;
+            if (context == null) return;
 
-            foreach (var m in GlobalSquad.Members)
-                if (m.Context == context)
-                    return;
+            var squad = GetSquad(context.Team);
+            if (squad == null) return;
 
-            GlobalSquad.Members.Add(new SquadMemberData
-            {
-                Context = context
-            });
+            foreach (var m in squad.Members)
+                if (m.Context == context) return;
 
-            GlobalSquad.AssignRoles();
+            squad.Members.Add(new SquadMemberData { Context = context });
+            squad.AssignRoles();
         }
 
         public void Unregister(StateContext context)
         {
-            if (context == null)
-                return;
+            if (context == null) return;
 
-            GlobalSquad.Members.RemoveAll(m => m.Context == context);
-
-            if (GlobalSquad.Leader != null &&
-                GlobalSquad.Leader.Context == context)
-            {
-                GlobalSquad.Leader =
-                    GlobalSquad.Members.Count > 0
-                        ? GlobalSquad.Members[0]
-                        : null;
-            }
-
-            GlobalSquad.AssignRoles();
+            UnregisterFrom(context, EnemySquad);
+            UnregisterFrom(context, AllySquad);
+            UnregisterFrom(context, PlayerSquad);
         }
 
-        public Vector3 GetTargetPosition()
+        private void UnregisterFrom(
+            StateContext context, SquadContext squad)
         {
-            return GlobalSquad.GetTargetPosition();
+            int removed = squad.Members.RemoveAll(
+                m => m.Context == context);
+
+            if (removed == 0) return;
+
+            if (squad.TypedLeader?.Context == context)
+                squad.Leader = squad.Members.Count > 0
+                    ? squad.Members[0] : null;
+
+            squad.AssignRoles();
         }
+
+        public SquadContext GetSquad(Team team)
+        {
+            switch (team)
+            {
+                case Team.Ally:   return AllySquad;
+                case Team.Player: return PlayerSquad;
+                default:          return EnemySquad;
+            }
+        }
+
+        public Vector3 GetTargetPosition(Team team)
+            => GetSquad(team).GetTargetPosition();
     }
 }

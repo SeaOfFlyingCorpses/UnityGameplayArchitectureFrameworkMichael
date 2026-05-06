@@ -2,17 +2,6 @@ using UnityEngine;
 
 namespace Gameplay.Camera.Modes
 {
-    // =========================================
-    // OverShoulderCameraMode
-    // Sits just over the right shoulder.
-    // Mouse look rotates the camera and the
-    // target body together (yaw) while pitch
-    // is camera only.
-    //
-    // Use case: TPS shooters, cover systems
-    // Examples: Resident Evil 4, Gears of War,
-    //           The Last of Us, Mass Effect
-    // =========================================
     public class OverShoulderCameraMode : ICameraMode
     {
         private readonly Transform                  _target;
@@ -24,11 +13,12 @@ namespace Gameplay.Camera.Modes
         private const float RotationSpeed  = 120f;
         private const float PitchMin       = -30f;
         private const float PitchMax       =  50f;
-        private const float ShoulderOffset =  0.6f;   // right offset
-        private const float HeightOffset   =  1.4f;   // eye height
-        private const float DepthOffset    = -2.0f;   // distance behind
+        private const float ShoulderOffset =  0.6f;
+        private const float HeightOffset   =  1.4f;
+        private const float DepthOffset    = -2.0f;
 
-        public OverShoulderCameraMode(Transform target, Framework.Input.InputState input)
+        public OverShoulderCameraMode(Transform target,
+            Framework.Input.InputState input)
         {
             _target = target;
             _input  = input;
@@ -49,24 +39,23 @@ namespace Gameplay.Camera.Modes
             Cursor.visible   = true;
         }
 
-        public void Tick(UnityEngine.Camera cam, float deltaTime, ref CameraSnapshot snapshot)
+        public void Tick(UnityEngine.Camera cam, float deltaTime,
+            ref CameraSnapshot snapshot)
         {
-            if (_target == null || _input == null)
-                return;
+            if (_target == null || _input == null) return;
 
             _yaw   += _input.Look.x * RotationSpeed * deltaTime;
             _pitch -= _input.Look.y * RotationSpeed * deltaTime;
             _pitch  = Mathf.Clamp(_pitch, PitchMin, PitchMax);
 
-            // Rotate the target body horizontally to match camera yaw
             _target.rotation = Quaternion.Euler(0f, _yaw, 0f);
 
-            // Camera position — over right shoulder
             Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
-            Vector3 localOffset = new Vector3(ShoulderOffset, HeightOffset, DepthOffset);
-            Vector3 worldOffset = rotation * localOffset;
+            Vector3 localOffset = new Vector3(
+                ShoulderOffset, HeightOffset, DepthOffset);
 
-            snapshot.Position = _target.position + worldOffset;
+            snapshot.Position = _target.position +
+                                 rotation * localOffset;
             snapshot.Rotation = Quaternion.Euler(_pitch, _yaw, 0f);
         }
     }

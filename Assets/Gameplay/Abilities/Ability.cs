@@ -5,8 +5,11 @@ namespace Gameplay.Abilities
     public class Ability
     {
         public string Id;
-        public float Cooldown;
-        public float LastUseTime;
+        public float  Cooldown;
+        public float  LastUseTime;
+
+        // Higher = preferred when multiple abilities ready
+        public int Priority = 0;
 
         public Action<AbilityContext> Execute;
 
@@ -17,8 +20,7 @@ namespace Gameplay.Abilities
 
         public void Use(AbilityContext context)
         {
-            if (!CanUse())
-                return;
+            if (!CanUse()) return;
 
             Execute?.Invoke(context);
             LastUseTime = UnityEngine.Time.time;

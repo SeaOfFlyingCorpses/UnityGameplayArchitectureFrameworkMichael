@@ -1,12 +1,12 @@
-using Framework.Systems.Health;
 using UnityEngine;
+using Framework.Systems.Health;
 
 namespace Gameplay.Systems.Health
 {
     public class HealthDebugDisplay : MonoBehaviour
     {
         private HealthComponent    _healthComp;
-        private IHealth _health;
+        private IHealth            _health;
         private string             _healthType;
         private UnityEngine.Camera _cam;
 
@@ -22,7 +22,13 @@ namespace Gameplay.Systems.Health
 
             _health     = _healthComp.GetHealth();
             _healthType = _health.GetType().Name;
-            _cam        = UnityEngine.Camera.main;
+        }
+
+        private void Update()
+        {
+            // Cache camera lazily — safe for prefabs
+            if (_cam == null)
+                _cam = UnityEngine.Camera.main;
         }
 
         private void OnGUI()
@@ -46,7 +52,6 @@ namespace Gameplay.Systems.Health
             GUILayout.Label($"HP: {_health.Value} / {_health.MaxValue}");
             GUILayout.Label($"Dead: {_health.IsDead}");
 
-            // Single types
             if (_health is ShieldedHealth sh)
                 GUILayout.Label($"Shield: {sh.Shield} / {sh.MaxShield}");
 
@@ -68,26 +73,15 @@ namespace Gameplay.Systems.Health
             if (_health is InvincibleHealth)
                 GUILayout.Label("*** INVINCIBLE ***");
 
-            // Composite — show each layer
             if (_health is CompositeHealth composite)
             {
                 GUILayout.Label("--- Layers ---");
-
                 var csh = composite.GetLayer<ShieldedHealth>();
-                if (csh != null)
-                    GUILayout.Label($"Shield: {csh.Shield} / {csh.MaxShield}");
-
+                if (csh != null) GUILayout.Label($"Shield: {csh.Shield} / {csh.MaxShield}");
                 var cah = composite.GetLayer<ArmouredHealth>();
-                if (cah != null)
-                    GUILayout.Label($"Armour: {cah.Armour} | {cah.ArmourPct * 100f:F0}%");
-
+                if (cah != null) GUILayout.Label($"Armour: {cah.Armour} | {cah.ArmourPct * 100f:F0}%");
                 var cseg = composite.GetLayer<SegmentedHealth>();
-                if (cseg != null)
-                    GUILayout.Label($"Segment: {cseg.CurrentSegment} / {cseg.TotalSegments}");
-
-                var cregen = composite.GetLayer<RegenHealth>();
-                if (cregen != null)
-                    GUILayout.Label("(Regen active)");
+                if (cseg != null) GUILayout.Label($"Segment: {cseg.CurrentSegment} / {cseg.TotalSegments}");
             }
 
             GUILayout.EndArea();

@@ -3,23 +3,6 @@ using Framework.Core;
 
 namespace Gameplay.Bootstrap
 {
-    // =========================================
-    // GameBootstrap
-    // Registers all object pools at game start.
-    // Place on the _GameSystems GameObject.
-    //
-    // Add a new pool entry in the Inspector for
-    // each prefab you want pooled.
-    // The Key must match what DeathSystem and
-    // any spawner uses to get/return objects.
-    //
-    // Example keys:
-    //   "Enemy"      — standard enemy
-    //   "EliteEnemy" — elite variant
-    //   "Bullet"     — projectile
-    //   "Explosion"  — VFX
-    //   "Loot"       — dropped item
-    // =========================================
     public class GameBootstrap : MonoBehaviour
     {
         [System.Serializable]
@@ -38,7 +21,11 @@ namespace Gameplay.Bootstrap
         [Header("Object Pools")]
         public PoolEntry[] pools;
 
-        private void Awake()
+        // =========================================
+        // Use Start() not Awake() so PoolRegistry
+        // has time to register itself in its Awake()
+        // =========================================
+        private void Start()
         {
             RegisterPools();
         }
@@ -49,9 +36,7 @@ namespace Gameplay.Bootstrap
 
             if (registry == null)
             {
-                Debug.LogWarning("[GameBootstrap] No PoolRegistry found. " +
-                                 "Make sure PoolRegistry is on the same GameObject " +
-                                 "and its Awake runs before GameBootstrap.");
+                Debug.LogWarning("[GameBootstrap] No PoolRegistry found.");
                 return;
             }
 

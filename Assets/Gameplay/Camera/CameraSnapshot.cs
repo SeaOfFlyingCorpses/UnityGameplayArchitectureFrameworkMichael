@@ -4,9 +4,9 @@ namespace Gameplay.Camera
 {
     public struct CameraSnapshot
     {
-        public Vector3 Position;
+        public Vector3    Position;
         public Quaternion Rotation;
-        public float FOV;
+        public float      FOV;
 
         public static CameraSnapshot Capture(UnityEngine.Camera cam)
         {
@@ -14,7 +14,7 @@ namespace Gameplay.Camera
             {
                 Position = cam.transform.position,
                 Rotation = cam.transform.rotation,
-                FOV = cam.fieldOfView
+                FOV      = cam.fieldOfView
             };
         }
 
@@ -24,7 +24,7 @@ namespace Gameplay.Camera
             {
                 Position = Vector3.Lerp(a.Position, b.Position, t),
                 Rotation = Quaternion.Lerp(a.Rotation, b.Rotation, t),
-                FOV = Mathf.Lerp(a.FOV, b.FOV, t)
+                FOV      = Mathf.Lerp(a.FOV, b.FOV, t)
             };
         }
 
@@ -32,7 +32,7 @@ namespace Gameplay.Camera
         {
             cam.transform.position = Position;
             cam.transform.rotation = Rotation;
-            cam.fieldOfView = FOV;
+            cam.fieldOfView        = FOV;
         }
     }
 }

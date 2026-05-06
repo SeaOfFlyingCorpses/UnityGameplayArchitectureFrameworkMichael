@@ -11,17 +11,20 @@ namespace Gameplay.AI.Squad
 
         public void Update(StateContext context)
         {
-            var globalSquad = ServiceLocator.Get<SquadSystem>()?.GlobalSquad;
+            var squadSystem = ServiceLocator.Get<SquadSystem>();
+            if (squadSystem == null) return;
 
-            if (globalSquad == null) return;
+            // Get the squad that matches this agent's team
+            var squad = squadSystem.GetSquad(context.Team);
+            if (squad == null) return;
 
             if (context.SquadContext != null)
             {
-                context.SquadContext.CurrentStrategy = globalSquad.CurrentStrategy;
-                context.SquadContext.CurrentTarget   = globalSquad.CurrentTarget;
+                context.SquadContext.CurrentStrategy = squad.CurrentStrategy;
+                context.SquadContext.CurrentTarget   = squad.CurrentTarget;
             }
 
-            context.SquadStrategy = globalSquad.CurrentStrategy;
+            context.SquadStrategy = squad.CurrentStrategy;
         }
     }
 }

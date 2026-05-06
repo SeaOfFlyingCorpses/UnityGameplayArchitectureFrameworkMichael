@@ -28,6 +28,12 @@ namespace Gameplay.Camera
         public Transform            playerTarget;
         public InputHandler         inputHandler;
 
+        [Header("Camera Tuning")]
+        [Tooltip("Distance from target (FreeLook, ThirdPerson, Orbit)")]
+        public float cameraDistance = 5f;
+        [Tooltip("Height above target")]
+        public float cameraHeight   = 3f;
+
         [Header("Fixed Mode")]
         public Vector3    fixedPosition;
         public Transform  fixedLookAt;
@@ -66,7 +72,7 @@ namespace Gameplay.Camera
                         Debug.LogWarning("CameraBootstrap: FreeLook needs PlayerTarget and InputHandler.");
                         return null;
                     }
-                    return new FreeLookCameraMode(playerTarget, inputHandler.State);
+                    return new FreeLookCameraMode(playerTarget, inputHandler.State, cameraDistance, cameraHeight);
 
                 case StartingMode.FPS:
                     if (playerTarget == null)

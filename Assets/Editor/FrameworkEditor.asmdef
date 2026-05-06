@@ -1,0 +1,20 @@
+{
+    "name": "FrameworkEditor",
+    "rootNamespace": "FrameworkEditor",
+    "references": [
+        "Framework",
+        "Gameplay",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

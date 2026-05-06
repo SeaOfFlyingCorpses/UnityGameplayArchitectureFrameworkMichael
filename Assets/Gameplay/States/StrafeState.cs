@@ -36,7 +36,7 @@ namespace Gameplay.States
             if (distance < _desiredDistance - 0.5f) moveDir -= forward;
 
             context.Commands.Enqueue(
-                new MoveCommand(context.Self, moveDir.normalized, _strafeSpeed));
+                new MoveCommand(context.Self, moveDir.normalized, _strafeSpeed, context.Movement));
 
             context.AnimationRequest = new AnimationRequest(AnimationType.Move);
         }

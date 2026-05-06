@@ -92,8 +92,24 @@ namespace Framework.Core
 
         private GameObject Create()
         {
+            // Deactivate prefab before instantiating
+            // This prevents Awake/OnEnable from firing
+            // during pool pre-warm — critical for systems
+            // that register themselves in Awake/OnEnable
+            bool wasActive = _prefab.activeSelf;
+            _prefab.SetActive(false);
+
             var obj = Object.Instantiate(_prefab, _parent);
+
+            // Restore prefab state
+            _prefab.SetActive(wasActive);
+
+            // Remove "(Clone)" suffix
+            obj.name = _prefab.name;
+
+            // Keep pooled object inactive
             obj.SetActive(false);
+
             return obj;
         }
     }

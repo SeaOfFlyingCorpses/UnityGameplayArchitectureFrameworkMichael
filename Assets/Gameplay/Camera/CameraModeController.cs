@@ -61,9 +61,9 @@ namespace Gameplay.Camera
             _current?.Tick(cam, Time.deltaTime, ref _currentSnapshot);
 
             // STACK EFFECTS (shake, recoil, etc)
-            foreach (var effect in _cameraStack)
+               foreach (var effect in _cameraStack)
             {
-                effect?.Tick(cam, Time.deltaTime, ref _currentSnapshot);
+             //  effect?.Tick(cam, Time.deltaTime, ref _currentSnapshot);
             }
 
             // BLENDING

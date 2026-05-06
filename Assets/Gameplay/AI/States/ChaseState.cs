@@ -52,7 +52,7 @@ namespace Gameplay.AI.States
             }
 
             context.Commands.Enqueue(
-                new MoveCommand(context.Self, direction.normalized, speed));
+                new MoveCommand(context.Self, direction.normalized, speed, context.Movement));
 
             if (context.Memory != null)
                 context.Memory.Remember(context.Target.position, Time.time);

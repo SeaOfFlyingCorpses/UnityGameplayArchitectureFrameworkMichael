@@ -9,6 +9,7 @@ using Framework.AI.Systems;
 using Framework.Abilities;
 using Framework.Animation;
 using Framework.Commands;
+using Framework.Movement;
 using Framework.Input;
 using Framework.Systems.Health;
 
@@ -30,6 +31,13 @@ namespace Framework.StateMachine
         public IHealthComponent  HealthComp;
         public Transform         Self;
         public AnimationRequest? AnimationRequest;
+
+        // =========================================
+        // MOVEMENT STRATEGY — optional
+        // Null = TransformMovementStrategy (default)
+        // Set to NavMeshMovementStrategy for pathfinding
+        // =========================================
+        public IMovementStrategy Movement;
 
         // =========================================
         // AI LOD
@@ -97,6 +105,14 @@ namespace Framework.StateMachine
         public IAbilitySystem Abilities;
         public bool           WasHit;
         public Vector3        HitDirection;
+
+        // =========================================
+        // 2D PHYSICS STATE
+        // Written each frame by movement strategy
+        // =========================================
+        public bool IsGrounded;
+        public bool IsOnWall;
+        public bool IsCrouching;
 
         // =========================================
         // FACTION

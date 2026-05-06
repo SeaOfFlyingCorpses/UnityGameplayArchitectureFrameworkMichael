@@ -49,7 +49,7 @@ namespace Gameplay.States
                 PickNewWanderPoint(context);
             else
                 context.Commands.Enqueue(
-                    new MoveCommand(context.Self, toTarget.normalized, 3f));
+                    new MoveCommand(context.Self, toTarget.normalized, 3f, context.Movement));
 
             context.AnimationRequest = new AnimationRequest(AnimationType.Move);
         }

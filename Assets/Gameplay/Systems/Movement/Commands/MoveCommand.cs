@@ -1,28 +1,49 @@
 using Framework.Commands;
+using Framework.Movement;
 using UnityEngine;
 
 namespace Gameplay.Systems.Movement.Commands
 {
+    // =========================================
+    // MoveCommand
+    // Moves an agent using its IMovementStrategy
+    // if one is assigned, otherwise falls back
+    // to direct transform movement.
+    //
+    // All states and AI systems use this command
+    // — swap strategy on the agent to change
+    // how all movement works with zero state changes.
+    // =========================================
     public class MoveCommand : ICommand
     {
-        private readonly Transform _transform;
-        private readonly Vector3   _direction;
-        private readonly float     _speed;
+        private readonly Transform         _transform;
+        private readonly Vector3           _direction;
+        private readonly float             _speed;
+        private readonly IMovementStrategy _strategy;
 
-        // =========================================
-        // BOUNDS — keeps agents on the play area
-        // Set to match your plane size.
-        // Default covers a standard 10x10 Unity plane
-        // (which is 10 units = scaled to 100 = 50 half)
-        // Adjust WorldBounds to match your scene.
-        // =========================================
         private const float WorldBounds = 48f;
 
+        // =========================================
+        // Constructor without strategy —
+        // uses direct transform (default behaviour)
+        // =========================================
         public MoveCommand(Transform transform, Vector3 direction, float speed)
+            : this(transform, direction, speed, null) { }
+
+        // =========================================
+        // Constructor with strategy —
+        // delegates to whatever strategy is set
+        // =========================================
+        public MoveCommand(
+            Transform         transform,
+            Vector3           direction,
+            float             speed,
+            IMovementStrategy strategy)
         {
             _transform = transform;
             _direction = direction;
             _speed     = speed;
+            _strategy  = strategy;
         }
 
         public void Execute()
@@ -30,9 +51,16 @@ namespace Gameplay.Systems.Movement.Commands
             if (_transform == null)
                 return;
 
-            Vector3 next = _transform.position + _direction * _speed * Time.deltaTime;
+            if (_strategy != null)
+            {
+                _strategy.MoveInDirection(_transform, _direction, _speed);
+                return;
+            }
 
-            // Clamp to world bounds — stops agents walking off the plane
+            // Default — direct transform movement
+            Vector3 next = _transform.position +
+                           _direction.normalized * _speed * Time.deltaTime;
+
             next.x = Mathf.Clamp(next.x, -WorldBounds, WorldBounds);
             next.z = Mathf.Clamp(next.z, -WorldBounds, WorldBounds);
 

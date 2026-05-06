@@ -2,13 +2,27 @@ namespace Framework.Animation
 {
     public enum AnimationType
     {
+        // =========================================
+        // SHARED — 2D and 3D
+        // =========================================
         Idle,
         Move,
         Attack,
         Hit,
-        Death,    // plays death animation, sets IsDead bool
-        Dodge,    // plays dodge/roll animation
-        Stagger   // plays hit stagger animation
+        Death,
+        Dodge,
+        Stagger,
+
+        // =========================================
+        // 2D PLATFORMER
+        // =========================================
+        Jump,
+        Fall,
+        Land,
+        WallSlide,
+        Climb,
+        Crouch,
+        Dash
     }
 
     public struct AnimationRequest

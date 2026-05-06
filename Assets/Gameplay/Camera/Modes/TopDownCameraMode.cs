@@ -2,53 +2,53 @@ using UnityEngine;
 
 namespace Gameplay.Camera.Modes
 {
-    // =========================================
-    // TopDownCameraMode
-    // Fixed overhead angle, follows a target.
-    // Optionally allows zoom with scroll wheel.
-    //
-    // Use case: RTS, MOBA, twin-stick shooters
-    // Examples: Diablo, Hades, StarCraft
-    // =========================================
     public class TopDownCameraMode : ICameraMode
     {
         private readonly Transform _target;
-
-        private float _height;
-        private float _tilt;
-        private float _smoothSpeed;
+        private readonly float     _height;
+        private readonly float     _smoothSpeed;
 
         private Vector3 _smoothPosition;
+        private bool    _initialized;
 
         public TopDownCameraMode(
             Transform target,
             float height      = 15f,
-            float tilt        = 70f,
             float smoothSpeed = 5f)
         {
             _target      = target;
             _height      = height;
-            _tilt        = tilt;
             _smoothSpeed = smoothSpeed;
         }
 
-        public void Activate(UnityEngine.Camera cam) { }
+        public void Activate(UnityEngine.Camera cam)
+        {
+            _initialized = false;
+        }
 
         public void Deactivate(UnityEngine.Camera cam) { }
 
-        public void Tick(UnityEngine.Camera cam, float deltaTime, ref CameraSnapshot snapshot)
+        public void Tick(UnityEngine.Camera cam, float deltaTime,
+            ref CameraSnapshot snapshot)
         {
-            if (_target == null)
-                return;
+            if (_target == null) return;
 
-            // Position directly above and slightly behind target
-            Vector3 offset  = Quaternion.Euler(_tilt, 0f, 0f) * new Vector3(0f, 0f, -_height);
-            Vector3 desired = _target.position + offset;
+            Vector3 desired = _target.position + Vector3.up * _height;
 
-            _smoothPosition = Vector3.Lerp(_smoothPosition, desired, deltaTime * _smoothSpeed);
+            if (!_initialized)
+            {
+                _smoothPosition = desired;
+                _initialized    = true;
+            }
+            else
+            {
+                _smoothPosition = Vector3.Lerp(
+                    _smoothPosition, desired, deltaTime * _smoothSpeed);
+            }
 
             snapshot.Position = _smoothPosition;
-            snapshot.Rotation = Quaternion.Euler(_tilt, 0f, 0f);
+            snapshot.Rotation = Quaternion.LookRotation(
+                _target.position - _smoothPosition);
         }
     }
 }
