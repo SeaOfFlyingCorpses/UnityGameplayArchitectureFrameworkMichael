@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Framework.StateMachine;
 using UnityEngine;
+using Unity.Profiling;
+using Framework.Core;
 
 namespace Gameplay.AI.Perception
 {
@@ -88,6 +90,7 @@ namespace Gameplay.AI.Perception
         // =========================================
         public void Tick()
         {
+            using var marker = FrameworkProfiler.AIPerceptionTick.Auto();
             if (context == null || context.PerceptionContext == null)
                 return;
 

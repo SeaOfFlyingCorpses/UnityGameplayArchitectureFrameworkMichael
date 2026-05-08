@@ -193,6 +193,9 @@ namespace Gameplay.AI
             // Abilities — factory registers them in Build()
             _context.Abilities = new AbilitySystem();
 
+            // Status effects
+            _context.StatusEffects = new Gameplay.StatusEffects.StatusEffectSystem();
+
             if (perception != null)
             {
                 perception.context = _context;

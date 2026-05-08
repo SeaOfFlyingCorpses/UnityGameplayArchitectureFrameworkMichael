@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Unity.Profiling;
+using Framework.Core;
 
 namespace Framework.Commands
 {
@@ -13,15 +15,15 @@ namespace Framework.Commands
 
         public void ExecuteAll()
         {
+            using var marker = FrameworkProfiler.CommandExecute.Auto();
+
             while (_queue.Count > 0)
-            {
                 _queue.Dequeue().Execute();
-            }
         }
 
         public void Clear()
         {
-            _queue.Clear(); // FIXED
+            _queue.Clear();
         }
     }
 }

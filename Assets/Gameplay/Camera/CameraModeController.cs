@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Profiling;
+using Framework.Core;
 
 namespace Gameplay.Camera
 {
@@ -49,6 +51,7 @@ namespace Gameplay.Camera
         // =========================================
         private void LateUpdate()
         {
+            using var marker = FrameworkProfiler.CameraTick.Auto();
             var request = Resolve();
 
             if (request.HasValue)

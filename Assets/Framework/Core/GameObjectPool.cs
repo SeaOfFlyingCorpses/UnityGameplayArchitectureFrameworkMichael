@@ -1,3 +1,4 @@
+using Unity.Profiling;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -42,6 +43,12 @@ namespace Framework.Core
         // =========================================
         public GameObject Get(Vector3 position, Quaternion rotation)
         {
+            using var marker = FrameworkProfiler.PoolGet.Auto();
+            return GetInternal(position, rotation);
+        }
+
+        private GameObject GetInternal(Vector3 position, Quaternion rotation)
+        {
             GameObject obj;
 
             if (_available.Count > 0)
@@ -64,6 +71,12 @@ namespace Framework.Core
         // RETURN — deactivates and returns to pool
         // =========================================
         public void Return(GameObject obj)
+        {
+            using var marker = FrameworkProfiler.PoolReturn.Auto();
+            ReturnInternal(obj);
+        }
+
+        private void ReturnInternal(GameObject obj)
         {
             if (obj == null)
                 return;

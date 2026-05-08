@@ -560,7 +560,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3442309250810773121, guid: 7216939b7417f634c9213f9018be230a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -16.04
+      value: -16
       objectReference: {fileID: 0}
     - target: {fileID: 3442309250810773121, guid: 7216939b7417f634c9213f9018be230a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -692,7 +692,7 @@ Transform:
   m_GameObject: {fileID: 710364014}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 6.93, z: -46.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -767,7 +767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60f01c15ce0718048b5ec31e11ad151d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Gameplay::Gameplay.Camera.CameraBootstrap
-  mode: 4
+  mode: 5
   controller: {fileID: 710364019}
   playerTarget: {fileID: 1443509476}
   inputHandler: {fileID: 1443509489}
@@ -1095,6 +1095,7 @@ MonoBehaviour:
   poisonResistance: 1
   holyResistance: 1
   darkResistance: 1
+  isInvincible: 0
 --- !u!114 &1011893231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1133,8 +1134,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 1011893231}
   healthComponent: {fileID: 1011893230}
-  playerTransform: {fileID: 0}
   rb: {fileID: 1011893228}
+  playerTag: Player
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   team: 2
 --- !u!65 &1011893233
 BoxCollider:
@@ -1457,6 +1461,11 @@ MonoBehaviour:
   patrolSpeed: 2.5
   waitAtPoint: 1.5
   wanderRadius: 8
+  is2D: 0
+  jumpThreshold: 1.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   attackCooldown: 1.2
   attackRange: 5.5
   idealDistance: 5
@@ -1558,6 +1567,7 @@ MonoBehaviour:
   poisonResistance: 1
   holyResistance: 1
   darkResistance: 1
+  isInvincible: 0
 --- !u!114 &1374604447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1596,8 +1606,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 1374604447}
   healthComponent: {fileID: 1374604446}
-  playerTransform: {fileID: 0}
   rb: {fileID: 1374604444}
+  playerTag: Player
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   team: 2
 --- !u!65 &1374604449
 BoxCollider:
@@ -1868,6 +1881,8 @@ GameObject:
   - component: {fileID: 1443509480}
   - component: {fileID: 1443509477}
   - component: {fileID: 1443509489}
+  - component: {fileID: 1443509491}
+  - component: {fileID: 1443509490}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -1959,6 +1974,7 @@ MonoBehaviour:
   poisonResistance: 1
   holyResistance: 1
   darkResistance: 1
+  isInvincible: 0
 --- !u!114 &1443509484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2082,6 +2098,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a954a34def43ac841a93600accbca4a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Gameplay::Gameplay.Input.InputHandler
+--- !u!114 &1443509490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443509475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 238a73f29bfdfed4bae1d531c731cd0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Network.LocalNetworkStateSync
+--- !u!114 &1443509491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443509475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67749344bcf5e6845bcfd924770fff58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Network.LocalNetworkEntity
+  networkId: 0
 --- !u!1 &1507381795
 GameObject:
   m_ObjectHideFlags: 0
@@ -2606,6 +2647,12 @@ GameObject:
   - component: {fileID: 1973347114}
   - component: {fileID: 1973347113}
   - component: {fileID: 1973347112}
+  - component: {fileID: 1973347119}
+  - component: {fileID: 1973347118}
+  - component: {fileID: 1973347117}
+  - component: {fileID: 1973347116}
+  - component: {fileID: 1973347115}
+  - component: {fileID: 1973347120}
   m_Layer: 0
   m_Name: _GameSystems
   m_TagString: Untagged
@@ -2852,6 +2899,85 @@ MonoBehaviour:
   stateGroups: []
   switchGroups: []
   startupEvents: []
+--- !u!114 &1973347115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f5110fee1cd06499dfaefcf5d862b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Items.ItemDatabaseLoader
+  database: {fileID: 0}
+--- !u!114 &1973347116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1626e8fd4d33b3345979e10efd884a2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Network.OfflineTransport
+--- !u!114 &1973347117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31b6f0ee75f65b341b58ff5916a80837, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Quests.QuestBootstrap
+  quests: []
+--- !u!114 &1973347118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b40004309eb593c45b3af10eac01da54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Quests.QuestSystem
+--- !u!114 &1973347119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b46e4c2c5d6b7c49ab7fd737e53010d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Dialogue.DialogueSystem
+--- !u!114 &1973347120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973347098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1024e50d34593e046b80c4bdb6351eff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Gameplay::Gameplay.Tools.AIDebugOverlay
+  toggleKey: 282
+  cycleModeKey: 283
+  showOnStart: 0
+  fontSize: 12
+  worldLabelHeight: 2.5
 --- !u!1 &2054714833
 GameObject:
   m_ObjectHideFlags: 0
@@ -2945,6 +3071,7 @@ MonoBehaviour:
   poisonResistance: 1
   holyResistance: 1
   darkResistance: 1
+  isInvincible: 0
 --- !u!114 &2054714837
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2983,8 +3110,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.AIController
   perception: {fileID: 2054714837}
   healthComponent: {fileID: 2054714836}
-  playerTransform: {fileID: 0}
   rb: {fileID: 2054714834}
+  playerTag: Player
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   team: 2
 --- !u!65 &2054714839
 BoxCollider:

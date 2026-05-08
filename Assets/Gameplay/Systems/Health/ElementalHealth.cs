@@ -1,6 +1,7 @@
-using Framework.Systems.Health;
+using Framework.Systems.Damage;
 using System;
 using System.Collections.Generic;
+using Framework.Systems.Health;
 using UnityEngine;
 
 namespace Gameplay.Systems.Health
@@ -8,17 +9,6 @@ namespace Gameplay.Systems.Health
     // =========================================
     // Damage types — extend freely
     // =========================================
-    public enum DamageType
-    {
-        Physical,
-        Fire,
-        Ice,
-        Lightning,
-        Poison,
-        Holy,
-        Dark
-    }
-
     // =========================================
     // ElementalHealth
     // Applies damage multipliers per damage type.

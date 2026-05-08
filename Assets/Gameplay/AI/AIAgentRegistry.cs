@@ -6,18 +6,20 @@ using Framework.Core;
 namespace Gameplay.AI
 {
     // =========================================
+    // AIAgentData
+    // Snapshot of one registered agent.
+    // Used by AIDebugOverlay and editor tools.
+    // =========================================
+    public class AIAgentData
+    {
+        public Transform     Transform;
+        public StateContext  Context;
+    }
+
+    // =========================================
     // AIAgentRegistry
-    // Replaces the static Dictionary on AIController.
-    // Registered as a service so its lifetime is
-    // controlled by ServiceLocator — clears cleanly
-    // on scene unload, no stale Transform references.
-    //
-    // Usage:
-    //   ServiceLocator.Get<AIAgentRegistry>()?.Register(transform, context);
-    //   ServiceLocator.Get<AIAgentRegistry>()?.TryGetContext(transform, out ctx);
-    //
-    // Place on your _GameSystems GameObject alongside
-    // AIDirector, SquadSystem, AIGroupManager.
+    // Central registry of all active AI agents.
+    // Place on _GameSystems.
     // =========================================
     public class AIAgentRegistry : MonoBehaviour
     {
@@ -39,32 +41,49 @@ namespace Gameplay.AI
         // =========================================
         public void Register(Transform transform, StateContext context)
         {
-            if (transform == null || context == null)
-                return;
-
+            if (transform == null || context == null) return;
             _agents[transform] = context;
         }
 
         public void Unregister(Transform transform)
         {
-            if (transform == null)
-                return;
-
+            if (transform == null) return;
             _agents.Remove(transform);
         }
 
         // =========================================
         // LOOKUP
         // =========================================
-        public bool TryGetContext(Transform transform, out StateContext context)
-        {
-            return _agents.TryGetValue(transform, out context);
-        }
+        public bool TryGetContext(Transform transform,
+                                  out StateContext context)
+            => _agents.TryGetValue(transform, out context);
 
         public StateContext GetContext(Transform transform)
         {
             _agents.TryGetValue(transform, out var context);
             return context;
         }
+
+        // =========================================
+        // GET ALL — used by debug overlay and tools
+        // =========================================
+        public IReadOnlyList<AIAgentData> GetAll()
+        {
+            var list = new List<AIAgentData>(_agents.Count);
+
+            foreach (var kvp in _agents)
+            {
+                if (kvp.Key == null) continue;
+                list.Add(new AIAgentData
+                {
+                    Transform = kvp.Key,
+                    Context   = kvp.Value
+                });
+            }
+
+            return list;
+        }
+
+        public int Count => _agents.Count;
     }
 }

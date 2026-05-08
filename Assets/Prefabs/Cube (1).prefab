@@ -328,8 +328,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Gameplay::Gameplay.AI.AIController
   perception: {fileID: 209414552320844945}
   healthComponent: {fileID: 1254163277466391215}
-  playerTransform: {fileID: 0}
   rb: {fileID: 5243801497412489103}
+  playerTag: Player
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   team: 1
 --- !u!114 &209414552320844945
 MonoBehaviour:
@@ -382,6 +385,7 @@ MonoBehaviour:
   poisonResistance: 1
   holyResistance: 1
   darkResistance: 1
+  isInvincible: 0
 --- !u!114 &2164207359759562076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -461,6 +465,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cbd1b3ce6e50764db57b14dfbdeaff7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.AI.States.CombatAIStateFactory
+  is2D: 0
+  jumpThreshold: 1.5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   abilities:
   - {fileID: 11400000, guid: 7258e1456b4da4146a5c328c0c10ca8f, type: 2}
   attackCooldown: 1.2

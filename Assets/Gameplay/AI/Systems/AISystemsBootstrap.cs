@@ -42,6 +42,7 @@ namespace Gameplay.AI.Systems
             manager.Register(new ThreatSystem());
             manager.Register(new SquadAISystem());
             manager.Register(new FormationAISystem());
+            manager.Register(new StatusEffectsAISystem());
         }
 
         // =========================================

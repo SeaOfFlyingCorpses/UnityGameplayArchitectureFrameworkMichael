@@ -15,11 +15,6 @@ using Framework.Systems.Health;
 
 namespace Framework.StateMachine
 {
-    // =========================================
-    // StateContext
-    // Zero Gameplay imports — pure Framework.
-    // The compiler enforces this via Framework.asmdef.
-    // =========================================
     public class StateContext
     {
         // =========================================
@@ -33,9 +28,7 @@ namespace Framework.StateMachine
         public AnimationRequest? AnimationRequest;
 
         // =========================================
-        // MOVEMENT STRATEGY — optional
-        // Null = TransformMovementStrategy (default)
-        // Set to NavMeshMovementStrategy for pathfinding
+        // MOVEMENT
         // =========================================
         public IMovementStrategy Movement;
 
@@ -52,6 +45,29 @@ namespace Framework.StateMachine
         public IMemoryContext     MemoryContext;
         public AlertContext       AlertContext;
         public ISquadContext      SquadContext;
+
+        // =========================================
+        // ABILITIES
+        // =========================================
+        public IAbilitySystem Abilities;
+
+        // =========================================
+        // STATUS EFFECTS
+        // =========================================
+        public Framework.StatusEffects.IStatusEffectSystem StatusEffects;
+
+        // =========================================
+        // STATUS EFFECT STATE
+        // Written by status effects each frame
+        // =========================================
+        public float SpeedMultiplier = 1f;
+        public bool  IsStunned;
+
+        // =========================================
+        // DEBUG
+        // Written by StateMachine each frame
+        // =========================================
+        public string CurrentStateName;
 
         // =========================================
         // BACKWARD-COMPAT ACCESSORS
@@ -102,9 +118,8 @@ namespace Framework.StateMachine
         // =========================================
         // COMBAT
         // =========================================
-        public IAbilitySystem Abilities;
-        public bool           WasHit;
-        public Vector3        HitDirection;
+        public bool    WasHit;
+        public Vector3 HitDirection;
 
         // =========================================
         // 2D PHYSICS STATE

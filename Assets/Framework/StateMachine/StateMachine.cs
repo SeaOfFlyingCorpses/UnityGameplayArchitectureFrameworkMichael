@@ -1,8 +1,10 @@
+using Unity.Profiling;
+using Framework.Core;
 namespace Framework.StateMachine
 {
     public class StateMachine
     {
-        private IState _currentState;
+        private IState       _currentState;
         private StateContext _context;
 
         public StateMachine(StateContext context)
@@ -15,14 +17,20 @@ namespace Framework.StateMachine
             _currentState?.Exit();
             _currentState = newState;
             _currentState.Enter(_context);
+
+            // Write state name for debug overlay
+            _context.CurrentStateName =
+                _currentState?.GetType().Name ?? "—";
         }
 
         public void Update()
         {
-            if (_currentState == null)
-                return;
+            if (_currentState == null) return;
 
-            foreach (var transition in _currentState.GetTransitions())
+            using var marker = FrameworkProfiler.AIStateUpdate.Auto();
+
+            foreach (var transition in
+                     _currentState.GetTransitions())
             {
                 if (transition.Evaluate(_context))
                 {
