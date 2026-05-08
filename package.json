@@ -1,0 +1,27 @@
+{
+  "name": "com.framework.gameplay-architecture",
+  "version": "1.0.0",
+  "displayName": "Gameplay Architecture Framework",
+  "description": "Modular, production-ready gameplay framework for Unity 6. State machine, behaviour tree, AI systems, health types, camera modes, audio abstraction, 2D support, progression, and more.",
+  "unity": "6000.0",
+  "unityRelease": "0b1",
+  "documentationUrl": "https://github.com/SeaOfFlyingCorpses/UnityGameplayArchitectureFrameworkMichael",
+  "changelogUrl": "https://github.com/SeaOfFlyingCorpses/UnityGameplayArchitectureFrameworkMichael/blob/main/CHANGELOG.md",
+  "keywords": [
+    "gameplay",
+    "framework",
+    "ai",
+    "state-machine",
+    "behaviour-tree",
+    "camera",
+    "health",
+    "inventory",
+    "2d",
+    "platformer"
+  ],
+  "author": {
+    "name": "Michael",
+    "url": "https://github.com/SeaOfFlyingCorpses"
+  },
+  "dependencies": {}
+}

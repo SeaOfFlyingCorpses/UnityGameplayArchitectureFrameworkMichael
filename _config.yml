@@ -1,0 +1,5 @@
+title: Gameplay Architecture Framework
+description: Modular Unity 6 gameplay framework
+theme: jekyll-theme-minimal
+plugins:
+  - jekyll-relative-links
